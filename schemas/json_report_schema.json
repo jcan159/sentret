@@ -1,0 +1,147 @@
+{
+  "analysis_id": "string",
+  "timestamp_utc": "string",
+  "mode": "analyse_existing_rule | create_new_detection",
+  "workspace_id": "string",
+  "detection_intent": "string",
+  "verdict": "Deploy as-is | Deploy after changes | Test only | Do not deploy",
+  "overall_score": 0,
+  "rating": "Excellent | Good | Needs Tuning | Weak | Not Deployable",
+  "summary": {
+    "main_finding": "string",
+    "recommended_action": "string",
+    "top_strengths": [
+      "string"
+    ],
+    "top_issues": [
+      "string"
+    ],
+    "required_fixes": [
+      "string"
+    ]
+  },
+  "kql": {
+    "original_query": "string",
+    "recommended_query": "string",
+    "alternative_queries": [
+      {
+        "name": "string",
+        "purpose": "string",
+        "query": "string"
+      }
+    ]
+  },
+  "static_review": {
+    "tables": [
+      "string"
+    ],
+    "columns": [
+      "string"
+    ],
+    "entities": [
+      "string"
+    ],
+    "syntax_issues": [
+      "string"
+    ],
+    "logic_issues": [
+      "string"
+    ],
+    "schema_risks": [
+      "string"
+    ],
+    "time_window_issues": [
+      "string"
+    ],
+    "performance_risks": [
+      "string"
+    ]
+  },
+  "workspace_validation": {
+    "execution_allowed": true,
+    "timespan": "string",
+    "queries_run": [
+      {
+        "purpose": "string",
+        "query": "string",
+        "status": "Succeeded | Failed | Skipped",
+        "row_count": 0,
+        "error": "string"
+      }
+    ],
+    "data_availability": [
+      {
+        "table": "string",
+        "exists": true,
+        "row_count": 0,
+        "min_timegenerated": "string",
+        "max_timegenerated": "string"
+      }
+    ],
+    "field_population": [
+      {
+        "table": "string",
+        "field": "string",
+        "populated_count": 0,
+        "total_count": 0,
+        "population_percent": 0
+      }
+    ]
+  },
+  "performance": {
+    "rating": "Excellent | Good | Moderate | Poor | Failed",
+    "execution_time_ms": 0,
+    "statistics_available": true,
+    "statistics_summary": "string",
+    "bottlenecks": [
+      "string"
+    ],
+    "optimisations": [
+      "string"
+    ]
+  },
+  "detection_quality": {
+    "intent_alignment_score": 0,
+    "syntax_schema_score": 0,
+    "data_coverage_score": 0,
+    "precision_score": 0,
+    "recall_score": 0,
+    "performance_score": 0,
+    "sentinel_readiness_score": 0,
+    "maintainability_score": 0,
+    "false_positive_risk": "Low | Medium | High",
+    "false_negative_risk": "Low | Medium | High",
+    "known_blind_spots": [
+      "string"
+    ]
+  },
+  "sentinel_rule": {
+    "display_name": "string",
+    "description": "string",
+    "enabled_recommendation": false,
+    "severity": "Informational | Low | Medium | High",
+    "query_frequency": "string",
+    "query_period": "string",
+    "trigger_operator": "GreaterThan",
+    "trigger_threshold": 0,
+    "tactics": [
+      "string"
+    ],
+    "techniques": [
+      "string"
+    ],
+    "entity_mappings": [],
+    "custom_details": {},
+    "alert_details_override": {},
+    "incident_configuration": {},
+    "event_grouping_settings": {},
+    "suppression_enabled": false,
+    "suppression_duration": "string"
+  },
+  "limitations": [
+    "string"
+  ],
+  "assumptions": [
+    "string"
+  ]
+}

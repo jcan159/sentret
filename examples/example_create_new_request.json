@@ -1,0 +1,19 @@
+{
+  "mode": "create_new_detection",
+  "detection_intent": "Detect possible MFA fatigue attacks: a user receiving an unusually high number of MFA push denials or timeouts within a short window, followed by a successful sign-in.",
+  "workspace_id": "00000000-0000-0000-0000-000000000000",
+  "timespan": "P7D",
+  "relevant_data_sources": ["SigninLogs", "AADNonInteractiveUserSignInLogs"],
+  "target_platform": "Microsoft Sentinel",
+  "environment_context": "Cloud-only Entra ID tenant, M365",
+  "expected_entities": ["Account", "IP"],
+  "rule_frequency": "PT1H",
+  "rule_period": "PT2H",
+  "severity_preference": "High",
+  "mitre_tactics": ["Credential Access"],
+  "mitre_techniques": ["T1621"],
+  "noise_tolerance": "Low",
+  "allow_query_execution": true,
+  "allow_raw_examples": false,
+  "data_sensitivity": "High"
+}

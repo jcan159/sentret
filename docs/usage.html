@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>sentret — Usage Guide</title>
+<style>
+  :root {
+    --bg: #f7f6f2;
+    --panel: #ffffff;
+    --ink: #1f2a30;
+    --muted: #5c6b73;
+    --accent: #0e6e6b;
+    --accent-soft: #e3f0ef;
+    --warn-bg: #fdf3e4;
+    --warn-edge: #c97b1f;
+    --danger-bg: #faeaea;
+    --danger-edge: #a63c3c;
+    --code-bg: #15211f;
+    --code-ink: #d7e6e2;
+    --border: #ddd8cd;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: "Avenir Next", "Segoe UI", system-ui, sans-serif;
+    background: var(--bg);
+    color: var(--ink);
+    line-height: 1.55;
+  }
+  header {
+    background: var(--code-bg);
+    color: #f2efe7;
+    padding: 2.4rem 1.5rem 2rem;
+  }
+  .shell { max-width: 1060px; margin: 0 auto; display: flex; gap: 2.2rem; padding: 0 1.5rem; }
+  header .shell { display: block; }
+  header h1 { margin: 0 0 .4rem; font-size: 1.9rem; letter-spacing: .01em; }
+  header h1 code { font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; color: #8fd6c9; }
+  header p { margin: 0; color: #b9c8c4; max-width: 60ch; }
+  nav {
+    flex: 0 0 215px;
+    position: sticky;
+    top: 1rem;
+    align-self: flex-start;
+    padding: 1.1rem 0;
+    font-size: .88rem;
+  }
+  nav a { display: block; color: var(--muted); text-decoration: none; padding: .22rem 0 .22rem .7rem; border-left: 2px solid transparent; }
+  nav a:hover { color: var(--accent); }
+  nav a.h { font-weight: 600; color: var(--ink); margin-top: .6rem; padding-left: 0; border-left: none; }
+  main { flex: 1; min-width: 0; padding: 1.6rem 0 4rem; }
+  h2 {
+    font-size: 1.35rem;
+    margin: 2.6rem 0 .8rem;
+    padding-bottom: .3rem;
+    border-bottom: 2px solid var(--accent-soft);
+  }
+  h2:first-child { margin-top: .6rem; }
+  h3 { font-size: 1.05rem; margin: 1.6rem 0 .5rem; color: var(--accent); }
+  p { margin: .6rem 0; }
+  code {
+    font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    font-size: .86em;
+    background: var(--accent-soft);
+    color: #0b4f4d;
+    padding: .08em .35em;
+    border-radius: 4px;
+  }
+  pre {
+    background: var(--code-bg);
+    color: var(--code-ink);
+    padding: .9rem 1.1rem;
+    border-radius: 8px;
+    overflow-x: auto;
+    font-size: .84rem;
+    line-height: 1.5;
+  }
+  pre code { background: none; color: inherit; padding: 0; font-size: 1em; }
+  pre .c { color: #7fa39b; }
+  table {
+    border-collapse: collapse;
+    width: 100%;
+    margin: .8rem 0 1.2rem;
+    font-size: .88rem;
+    background: var(--panel);
+  }
+  th, td { border: 1px solid var(--border); padding: .45rem .65rem; text-align: left; vertical-align: top; }
+  th { background: var(--accent-soft); color: #0b4f4d; font-weight: 600; }
+  td code { white-space: nowrap; }
+  td .wrap { white-space: normal; }
+  .callout {
+    border-left: 4px solid var(--accent);
+    background: var(--panel);
+    padding: .7rem 1rem;
+    margin: 1rem 0;
+    border-radius: 0 6px 6px 0;
+  }
+  .callout.warn { border-left-color: var(--warn-edge); background: var(--warn-bg); }
+  .callout.danger { border-left-color: var(--danger-edge); background: var(--danger-bg); }
+  .callout strong:first-child { display: block; margin-bottom: .15rem; }
+  .pill {
+    display: inline-block;
+    font-size: .72rem;
+    font-weight: 600;
+    letter-spacing: .04em;
+    text-transform: uppercase;
+    background: var(--accent);
+    color: #fff;
+    border-radius: 999px;
+    padding: .1rem .55rem;
+    margin-left: .4rem;
+    vertical-align: middle;
+  }
+  footer { color: var(--muted); font-size: .8rem; padding: 1.5rem; text-align: center; border-top: 1px solid var(--border); }
+  @media (max-width: 820px) {
+    .shell { flex-direction: column; gap: 0; }
+    nav { position: static; flex: none; display: flex; flex-wrap: wrap; gap: .2rem .9rem; border-bottom: 1px solid var(--border); }
+    nav a, nav a.h { border: none; padding: .15rem 0; margin: 0; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="shell">
+    <h1><code>sentret</code> — KQL Detection Rule Analyser</h1>
+    <p>A provider-agnostic, LLM-powered analyser for Microsoft Sentinel / Azure Log Analytics
+       detection rules: review existing KQL detections, generate new ones from intent, validate them
+       against a live workspace with bounded, audited queries, and produce a Sentinel-ready rule
+       package. Runs on Anthropic (Claude) or OpenAI — pick the backend with a flag.</p>
+  </div>
+</header>
+
+<div class="shell">
+<nav aria-label="Contents">
+  <a class="h" href="#overview">Overview</a>
+  <a href="#what-it-does">What it does</a>
+  <a href="#prereqs">Prerequisites</a>
+  <a class="h" href="#getting-started">Getting started</a>
+  <a href="#install">Install &amp; build</a>
+  <a href="#providers">Choosing a provider</a>
+  <a href="#azure">Azure AI Foundry</a>
+  <a href="#auth">Authentication</a>
+  <a href="#first-run">Your first run</a>
+  <a class="h" href="#reference">Reference</a>
+  <a href="#cli">CLI options</a>
+  <a href="#request">Request file format</a>
+  <a href="#outputs">Outputs</a>
+  <a href="#env">Environment variables</a>
+  <a class="h" href="#behaviour">Behaviour</a>
+  <a href="#safety">Safety controls</a>
+  <a href="#deploy">Deploying to Sentinel</a>
+  <a href="#refusals">Refusal fallback</a>
+  <a href="#troubleshooting">Troubleshooting</a>
+  <a href="#development">Development</a>
+</nav>
+
+<main>
+
+<h2 id="overview">Overview</h2>
+<p id="what-it-does">
+  <code>sentret</code> takes a single JSON <em>request file</em> describing either an existing KQL
+  detection rule to analyse (<code>mode: "analyse_existing_rule"</code>) or a detection you want
+  created from intent (<code>mode: "create_new_detection"</code>). An LLM agent — Claude or OpenAI,
+  your choice — then works through
+  the full detection-engineering workflow — static KQL review, schema and data-availability checks,
+  live validation queries, performance review with query statistics, threshold tuning, and MITRE
+  ATT&amp;CK mapping — and produces:
+</p>
+<ul>
+  <li>a <strong>verdict</strong> (Deploy as-is / Deploy after changes / Test only / Do not deploy) with a 0–100 score,</li>
+  <li><strong>recommended KQL</strong> plus alternatives,</li>
+  <li>a complete <strong>Sentinel scheduled-rule configuration</strong> (severity, frequency, entity mappings, …),</li>
+  <li>a structured <strong>JSON report</strong> and a human-readable <strong>markdown report</strong>, saved to disk.</li>
+</ul>
+<div class="callout">
+  <strong>Defensive use only.</strong>
+  The tool is for authorised defensive security engineering. Every live query is safety-gated,
+  bounded to an explicit timespan, confined to the requested workspace, redacted by default, and
+  written to an audit log. Nothing is ever deployed to Sentinel without explicit operator approval.
+</div>
+
+<h3 id="prereqs">Prerequisites</h3>
+<table>
+  <tr><th>Requirement</th><th>Notes</th></tr>
+  <tr><td>Node.js ≥ 20</td><td class="wrap">Native <code>fetch</code> and <code>.env</code> loading are used.</td></tr>
+  <tr><td>Anthropic API key</td><td class="wrap"><code>ANTHROPIC_API_KEY</code> in the environment or a <code>.env</code> file.</td></tr>
+  <tr><td>Azure identity</td><td class="wrap">Any <code>DefaultAzureCredential</code> source: <code>az login</code>, a service principal via <code>AZURE_*</code> variables, or managed identity.</td></tr>
+  <tr><td>Azure permissions</td><td class="wrap"><em>Log Analytics Reader</em> on the target workspace for analysis. <em>Microsoft Sentinel Contributor</em> only if you intend to deploy rules.</td></tr>
+</table>
+
+<h2 id="getting-started">Getting started</h2>
+
+<h3 id="install">Install &amp; build</h3>
+<pre><code>git clone &lt;repo&gt; &amp;&amp; cd sentret
+npm install
+npm run build          <span class="c"># optional — npx tsx runs straight from source</span></code></pre>
+
+<h3 id="providers">Choosing a provider</h3>
+<p>
+  <code>sentret</code> is provider-agnostic. The LLM backend is <strong>auto-detected</strong> from
+  your environment: an Anthropic key selects Claude (preferred when several are set), then
+  <code>AZURE_OPENAI_ENDPOINT</code> selects Azure AI Foundry, then <code>OPENAI_API_KEY</code>
+  selects OpenAI. Override explicitly with <code>--provider anthropic|openai|azure</code> or
+  <code>SENTRET_PROVIDER</code>. Set the model with <code>--model</code>,
+  <code>SENTRET_MODEL</code> (Anthropic), <code>OPENAI_MODEL</code>, or — on Azure — the deployment
+  name. Point <code>OPENAI_BASE_URL</code> at OpenRouter or a local OpenAI-compatible server (for
+  Azure, use the Azure settings below, not <code>OPENAI_BASE_URL</code>).
+</p>
+<table>
+  <tr><th>Capability</th><th>Anthropic</th><th>OpenAI</th><th>Azure AI Foundry</th></tr>
+  <tr><td class="wrap">Tool-use agent loop, structured report, streaming</td><td>✅</td><td>✅</td><td>✅</td></tr>
+  <tr><td class="wrap">Reasoning depth via <code>--effort</code></td><td class="wrap">adaptive thinking + effort</td><td class="wrap"><code>reasoning_effort</code> (o-series / GPT-5)</td><td class="wrap"><code>reasoning_effort</code> (force with <code>SENTRET_REASONING</code>)</td></tr>
+  <tr><td class="wrap">Refusal fallback to a second model</td><td class="wrap">✅ (Fable → Opus)</td><td class="wrap">— content-filter ends run</td><td class="wrap">—</td></tr>
+  <tr><td class="wrap">Streamed reasoning summaries (stderr)</td><td>✅</td><td>—</td><td>—</td></tr>
+  <tr><td class="wrap">Auth</td><td class="wrap">API key</td><td class="wrap">API key</td><td class="wrap">API key <em>or</em> Entra ID (<code>az login</code>)</td></tr>
+</table>
+
+<h4 id="azure">Azure AI Foundry (e.g. GPT-5.5)</h4>
+<p>
+  Azure routes by <strong>deployment name</strong> and uses a resource endpoint plus an
+  <code>api-version</code>, so it has its own settings and does <em>not</em> use
+  <code>OPENAI_BASE_URL</code>. The official <code>AzureOpenAI</code> client handles the wire
+  details; auth is an API key if you set one, otherwise Entra ID via
+  <code>DefaultAzureCredential</code> — the same <code>az login</code> identity you already use for
+  Log Analytics.
+</p>
+<pre><code>export AZURE_OPENAI_ENDPOINT=https://my-foundry.openai.azure.com  <span class="c"># resource URL, not the deployment URL</span>
+export AZURE_OPENAI_DEPLOYMENT=gpt-5-5-prod                       <span class="c"># your deployment name</span>
+export AZURE_OPENAI_API_VERSION=2025-04-01-preview               <span class="c"># match your deployment</span>
+<span class="c"># export AZURE_OPENAI_API_KEY=...    # optional; omit to use Entra ID</span>
+az login                                                          <span class="c"># if using Entra ID</span>
+
+npx tsx src/cli.ts --input examples/example_user_request.json     <span class="c"># azure auto-detected from the endpoint</span></code></pre>
+<div class="callout warn">
+  <strong>Two settings to get right for GPT-5.5.</strong>
+  (1) <code>AZURE_OPENAI_API_VERSION</code> must match what your Foundry deployment serves — the
+  built-in default is a best guess and a wrong value returns a 400. (2) GPT-5.x is a reasoning
+  model, but Azure deployment names are opaque so name-based detection can miss; if
+  <code>reasoning_effort</code> isn't applied, set <code>SENTRET_REASONING=always</code>.
+</div>
+<div class="callout">
+  <strong>Set your exact model.</strong>
+  The default <code>OPENAI_MODEL</code> is a conservative placeholder. On OpenAI set it to the model
+  id your account serves; on Azure set <code>AZURE_OPENAI_DEPLOYMENT</code> to your deployment name.
+</div>
+
+<h3 id="auth">Authentication</h3>
+<pre><code>cp .env.example .env   <span class="c"># put ANTHROPIC_API_KEY and/or OPENAI_API_KEY in .env</span>
+az login               <span class="c"># or export AZURE_TENANT_ID / AZURE_CLIENT_ID / AZURE_CLIENT_SECRET</span></code></pre>
+<p>A <code>.env</code> file in the working directory is loaded automatically. Never commit it.
+   You only need the key for the provider you'll use; Azure credentials are required only for live
+   workspace queries (skip with <code>--static-only</code>).</p>
+
+<h3 id="first-run">Your first run</h3>
+<p>Copy one of the example requests, set your workspace GUID, and run:</p>
+<pre><code><span class="c"># Analyse an existing rule</span>
+npx tsx src/cli.ts --input examples/example_user_request.json
+
+<span class="c"># Create a new detection from intent</span>
+npx tsx src/cli.ts --input examples/example_create_new_request.json
+
+<span class="c"># No live queries at all — static analysis only</span>
+npx tsx src/cli.ts --input examples/example_user_request.json --static-only
+
+<span class="c"># Compiled CLI (after npm run build)</span>
+node dist/cli.js --input request.json</code></pre>
+<p>
+  While it runs: the model's working notes and final report stream to <strong>stdout</strong>;
+  tool invocations (with their audited purpose) and summarized thinking stream to
+  <strong>stderr</strong>. A run typically issues several validation queries — count checks, schema
+  checks, field-population checks, threshold sensitivity — before submitting its report.
+</p>
+<p>When it finishes you'll see a summary on stderr:</p>
+<pre><code>Verdict: Deploy after changes | Score: 71/100 (Needs Tuning)
+Saved: reports/analysis_sentret_2026-06-12_ab12cd34.json
+Saved: reports/analysis_sentret_2026-06-12_ab12cd34.md</code></pre>
+
+<h2 id="reference">Reference</h2>
+
+<h3 id="cli">CLI options</h3>
+<table>
+  <tr><th>Flag</th><th>Description</th></tr>
+  <tr><td><code>-i, --input &lt;file&gt;</code></td><td class="wrap"><strong>Required.</strong> Path to the analyser request JSON.</td></tr>
+  <tr><td><code>--output-dir &lt;dir&gt;</code></td><td class="wrap">Where reports are written. Default <code>./reports</code>.</td></tr>
+  <tr><td><code>--provider &lt;name&gt;</code></td><td class="wrap"><code>anthropic</code> | <code>openai</code> | <code>azure</code>. Default: auto-detected from your environment.</td></tr>
+  <tr><td><code>--model &lt;id&gt;</code></td><td class="wrap">Model override for the active provider. Defaults: <code>claude-fable-5</code> (Anthropic) / <code>OPENAI_MODEL</code> (OpenAI).</td></tr>
+  <tr><td><code>--effort &lt;level&gt;</code></td><td class="wrap"><code>low</code> | <code>medium</code> | <code>high</code> | <code>xhigh</code> | <code>max</code>. Default <code>high</code>. Higher effort = deeper analysis, more tokens, longer turns.</td></tr>
+  <tr><td><code>--static-only</code></td><td class="wrap">Forces <code>allow_query_execution=false</code>: no live workspace queries; query tools are not even offered to the model.</td></tr>
+  <tr><td><code>--allow-deploy</code></td><td class="wrap">Grants this run permission to create/update a Sentinel rule. See <a href="#deploy">Deploying to Sentinel</a>.</td></tr>
+  <tr><td><code>--no-fallback</code></td><td class="wrap">Disables the refusal-fallback model (Anthropic only). See <a href="#refusals">Refusal fallback</a>.</td></tr>
+  <tr><td><code>-h, --help</code></td><td class="wrap">Show usage.</td></tr>
+</table>
+<p><strong>Exit codes:</strong> <code>0</code> — run completed with a report; <code>1</code> — run failed or ended without a report; <code>2</code> — usage error (bad flags, missing input, missing API key).</p>
+
+<h3 id="request">Request file format</h3>
+<p>Required fields:</p>
+<table>
+  <tr><th>Field</th><th>Description</th></tr>
+  <tr><td><code>mode</code></td><td class="wrap"><code>"analyse_existing_rule"</code> or <code>"create_new_detection"</code>.</td></tr>
+  <tr><td><code>detection_intent</code></td><td class="wrap">Natural-language description of the behaviour the rule should detect.</td></tr>
+  <tr><td><code>workspace_id</code></td><td class="wrap">Log Analytics workspace GUID. All queries are confined to this workspace.</td></tr>
+  <tr><td><code>timespan</code></td><td class="wrap">ISO 8601 duration (<code>"PT24H"</code>, <code>"P7D"</code>) or start/end range (<code>"2026-06-01/2026-06-08"</code>).</td></tr>
+  <tr><td><code>kql</code></td><td class="wrap">The existing query. <strong>Required for</strong> <code>analyse_existing_rule</code>; omit for create mode.</td></tr>
+</table>
+
+<p>Optional fields:</p>
+<table>
+  <tr><th>Field</th><th>Default</th><th>Description</th></tr>
+  <tr><td><code>allow_query_execution</code></td><td><code>true</code></td><td class="wrap">When <code>false</code>, the run is static-only (same as <code>--static-only</code>).</td></tr>
+  <tr><td><code>allow_raw_examples</code></td><td><code>false</code></td><td class="wrap">When <code>false</code>, every query result is redacted server-side before the model sees it: emails/UPNs, IPs, GUIDs, URLs, hosts, paths, tokens, secrets, and well-known sensitive columns become deterministic placeholders like <code>&lt;email:1a2b3c4d&gt;</code> that preserve distinctness for aggregation.</td></tr>
+  <tr><td><code>sample_mode_allowed</code></td><td><code>true</code></td><td class="wrap">When <code>false</code>, raw row sampling (<code>take</code>/<code>limit</code>/<code>sample</code>) is blocked entirely — only counts, summaries, and schema checks run.</td></tr>
+  <tr><td><code>allow_broad_queries</code></td><td><code>false</code></td><td class="wrap">Operator approval for workspace-wide patterns (<code>search</code>, <code>find</code>, <code>union *</code>, wildcard unions, <code>externaldata</code>). Cross-workspace escapes stay blocked regardless.</td></tr>
+  <tr><td><code>data_sensitivity</code></td><td>—</td><td class="wrap"><code>Low</code>/<code>Medium</code>/<code>High</code>/<code>Restricted</code>. <code>High</code> and <code>Restricted</code> cannot be combined with <code>allow_raw_examples: true</code> — the request is rejected up front.</td></tr>
+  <tr><td><code>sentinel_target</code></td><td>—</td><td class="wrap"><code>{ subscription_id, resource_group, workspace_name }</code>. Required for any Sentinel operation (rule listing or deployment). Verified against the analysed workspace GUID via ARM before first use.</td></tr>
+  <tr><td><code>rule_frequency</code> / <code>rule_period</code></td><td>—</td><td class="wrap">Intended schedule, e.g. <code>"PT1H"</code> / <code>"P1D"</code>. Informs frequency/lookback recommendations.</td></tr>
+  <tr><td><code>severity_preference</code></td><td>—</td><td class="wrap"><code>Informational</code>/<code>Low</code>/<code>Medium</code>/<code>High</code>.</td></tr>
+  <tr><td><code>noise_tolerance</code></td><td>—</td><td class="wrap"><code>Low</code>/<code>Medium</code>/<code>High</code> — how many false positives your SOC can absorb.</td></tr>
+  <tr><td><code>mitre_tactics</code> / <code>mitre_techniques</code></td><td>—</td><td class="wrap">Hints for ATT&amp;CK mapping, e.g. <code>["Credential Access"]</code>, <code>["T1621"]</code>.</td></tr>
+  <tr><td><code>relevant_data_sources</code></td><td>—</td><td class="wrap">Candidate tables/connectors, e.g. <code>["SigninLogs"]</code>.</td></tr>
+  <tr><td><code>target_platform</code>, <code>environment_context</code>, <code>expected_entities</code></td><td>—</td><td class="wrap">Free-form context: platform (Microsoft Sentinel, Defender XDR…), environment (cloud-only Entra ID, hybrid…), expected entities (Account, IP, Host…).</td></tr>
+</table>
+
+<p>A complete create-mode example:</p>
+<pre><code>{
+  "mode": "create_new_detection",
+  "detection_intent": "Detect possible MFA fatigue attacks: a user receiving an unusually high number of MFA push denials or timeouts within a short window, followed by a successful sign-in.",
+  "workspace_id": "00000000-0000-0000-0000-000000000000",
+  "timespan": "P7D",
+  "relevant_data_sources": ["SigninLogs", "AADNonInteractiveUserSignInLogs"],
+  "target_platform": "Microsoft Sentinel",
+  "environment_context": "Cloud-only Entra ID tenant, M365",
+  "expected_entities": ["Account", "IP"],
+  "rule_frequency": "PT1H",
+  "rule_period": "PT2H",
+  "severity_preference": "High",
+  "mitre_tactics": ["Credential Access"],
+  "mitre_techniques": ["T1621"],
+  "noise_tolerance": "Low",
+  "allow_query_execution": true,
+  "allow_raw_examples": false,
+  "data_sensitivity": "High"
+}</code></pre>
+
+<h3 id="outputs">Outputs</h3>
+<table>
+  <tr><th>Artifact</th><th>Location</th><th>Contents</th></tr>
+  <tr><td>Structured report</td><td><code>reports/analysis_&lt;id&gt;.json</code></td><td class="wrap">The full report contract (<code>schemas/analyser_report.schema.json</code>): verdict, 0–100 score with per-dimension sub-scores, static review, workspace validation evidence, performance review, recommended + alternative KQL, complete Sentinel rule config, limitations and assumptions.</td></tr>
+  <tr><td>Markdown report</td><td><code>reports/analysis_&lt;id&gt;.md</code></td><td class="wrap">The 13-section human-readable report (executive summary → final recommendation), suitable for tickets and review.</td></tr>
+  <tr><td>Audit log</td><td><code>audit/queries.jsonl</code></td><td class="wrap">One JSON line per query or Sentinel operation — executed, blocked, failed, or deployed — with timestamp, workspace, purpose, query text, and outcome detail. Append-only across runs.</td></tr>
+</table>
+<div class="callout">
+  <strong>Tip — separating streams.</strong>
+  <code>sentret -i request.json &gt; analysis.md 2&gt; run.log</code> gives you the clean report in
+  one file and the tool/thinking/run summary in the other.
+</div>
+
+<h3 id="env">Environment variables</h3>
+<table>
+  <tr><th>Variable</th><th>Default</th><th>Purpose</th></tr>
+  <tr><td><code>SENTRET_PROVIDER</code></td><td><em>auto</em></td><td class="wrap"><code>anthropic</code> | <code>openai</code> | <code>azure</code>. Auto-detected from your environment when unset.</td></tr>
+  <tr><td><code>ANTHROPIC_API_KEY</code></td><td>—</td><td class="wrap">Required for the Anthropic provider.</td></tr>
+  <tr><td><code>OPENAI_API_KEY</code></td><td>—</td><td class="wrap">Required for the OpenAI provider.</td></tr>
+  <tr><td><code>OPENAI_MODEL</code></td><td><code>gpt-4.1</code></td><td class="wrap">OpenAI model id (placeholder default — set yours). Also <code>SENTRET_OPENAI_MODEL</code>.</td></tr>
+  <tr><td><code>OPENAI_BASE_URL</code></td><td>—</td><td class="wrap">OpenAI-compatible endpoint (OpenRouter, local). Not for Azure. Also <code>SENTRET_OPENAI_BASE_URL</code>.</td></tr>
+  <tr><td><code>AZURE_OPENAI_ENDPOINT</code></td><td>—</td><td class="wrap">Azure Foundry resource URL; presence auto-selects the azure provider.</td></tr>
+  <tr><td><code>AZURE_OPENAI_DEPLOYMENT</code></td><td>—</td><td class="wrap">Azure deployment name (the model). Also settable with <code>--model</code>.</td></tr>
+  <tr><td><code>AZURE_OPENAI_API_VERSION</code></td><td><code>2025-04-01-preview</code></td><td class="wrap">Azure REST api-version — set to match your deployment (default may be wrong).</td></tr>
+  <tr><td><code>AZURE_OPENAI_API_KEY</code></td><td>—</td><td class="wrap">Azure auth; omit to use Entra ID via DefaultAzureCredential.</td></tr>
+  <tr><td><code>SENTRET_REASONING</code></td><td><code>auto</code></td><td class="wrap"><code>auto</code> | <code>always</code> | <code>never</code> — whether to send <code>reasoning_effort</code> (force <code>always</code> for opaque Azure deployment names).</td></tr>
+  <tr><td><code>SENTRET_MODEL</code></td><td><code>claude-fable-5</code></td><td class="wrap">Anthropic primary model.</td></tr>
+  <tr><td><code>SENTRET_FALLBACK_MODEL</code></td><td><code>claude-opus-4-8</code></td><td class="wrap">Anthropic refusal-fallback model. Empty value disables it.</td></tr>
+  <tr><td><code>SENTRET_EFFORT</code></td><td><code>high</code></td><td class="wrap">Default effort level.</td></tr>
+  <tr><td><code>SENTRET_MAX_TOKENS</code></td><td><code>64000</code></td><td class="wrap">Per-response output ceiling.</td></tr>
+  <tr><td><code>SENTRET_MAX_ITERATIONS</code></td><td><code>40</code></td><td class="wrap">Agent-loop cap before the run aborts.</td></tr>
+  <tr><td><code>SENTRET_LOG_ANALYTICS_ENDPOINT</code></td><td><code>https://api.loganalytics.azure.com</code></td><td class="wrap">Sovereign clouds: e.g. <code>https://api.loganalytics.us</code>. Token audiences are derived from the endpoint automatically; also set <code>AZURE_AUTHORITY_HOST</code> for your cloud.</td></tr>
+  <tr><td><code>SENTRET_ARM_ENDPOINT</code></td><td><code>https://management.azure.com</code></td><td class="wrap">ARM endpoint for Sentinel operations.</td></tr>
+  <tr><td><code>SENTRET_OUTPUT_DIR</code></td><td><code>./reports</code></td><td class="wrap">Report directory.</td></tr>
+  <tr><td><code>SENTRET_AUDIT_LOG</code></td><td><code>./audit/queries.jsonl</code></td><td class="wrap">Audit log path.</td></tr>
+  <tr><td><code>SENTRET_MAX_RESULT_ROWS</code></td><td><code>100</code></td><td class="wrap">Row cap on any query result fed to the model.</td></tr>
+  <tr><td><code>SENTRET_MAX_RESULT_CHARS</code></td><td><code>40000</code></td><td class="wrap">Character cap on any tool result fed to the model.</td></tr>
+</table>
+
+<h2 id="behaviour">Behaviour</h2>
+
+<h3 id="safety">Safety controls (enforced in code, not just prompted)</h3>
+<table>
+  <tr><th>Control</th><th>Enforcement</th></tr>
+  <tr><td>Bounded timespans</td><td class="wrap">Every query requires a valid ISO 8601 duration or date range; rejected otherwise.</td></tr>
+  <tr><td>Audited purpose</td><td class="wrap">Every query carries a purpose string; executed, blocked, and failed queries are all logged.</td></tr>
+  <tr><td>Broad-scan blocking</td><td class="wrap">Kusto control commands (<code>.ingest</code>, <code>.drop</code>, …), workspace-wide <code>search</code>/<code>find</code>, wildcard unions (<code>union *</code>, <code>union App*</code>), and <code>externaldata</code> are blocked unless <code>allow_broad_queries</code> is set. Patterns hidden in string literals or comments neither trigger nor evade the gate.</td></tr>
+  <tr><td>Workspace confinement</td><td class="wrap">Queries run only against the request's <code>workspace_id</code>. Cross-workspace escapes — <code>additional_workspaces</code>, <code>workspace()</code>, <code>cluster()</code>, <code>app()</code>, <code>adx()</code> — are blocked regardless of any approval flag.</td></tr>
+  <tr><td>Sample caps</td><td class="wrap"><code>take</code>/<code>limit</code>/<code>sample</code> over 50 rows is blocked; <code>sample_mode_allowed: false</code> blocks sampling entirely.</td></tr>
+  <tr><td>Redaction by default</td><td class="wrap">Unless <code>allow_raw_examples: true</code>, results are deterministically redacted (values, sensitive columns, secret-shaped strings, and error/statistics metadata) before reaching the model.</td></tr>
+  <tr><td>Result caps</td><td class="wrap">Row and character caps on everything returned to the model.</td></tr>
+  <tr><td>Deployment gating</td><td class="wrap">See below — three independent gates.</td></tr>
+</table>
+
+<h3 id="deploy">Deploying to Sentinel</h3>
+<p>Deployment is off by default and triple-gated. To enable it for one run:</p>
+<ol>
+  <li>Add <code>sentinel_target</code> to the request — the exact subscription, resource group, and workspace name you approve. Before any Sentinel call, the tool resolves this workspace via ARM and verifies its <code>customerId</code> equals the analysed <code>workspace_id</code>; mismatches are blocked.</li>
+  <li>Pass <code>--allow-deploy</code> on the CLI. Without it the deployment tool is not even offered to the model.</li>
+  <li>The ARM client itself refuses unconfirmed calls as defence in depth.</li>
+</ol>
+<pre><code>npx tsx src/cli.ts --input request.json --allow-deploy</code></pre>
+<div class="callout warn">
+  <strong>Review before you deploy.</strong>
+  The recommended flow is to run <em>without</em> <code>--allow-deploy</code> first, review the
+  generated rule package in the report, and only then re-run with deployment enabled.
+  Deployments (and refused attempts) are written to the audit log with the rule ID and ARM
+  resource ID. MITRE sub-technique IDs are automatically normalised to parent IDs
+  (<code>T1110.003</code> → <code>T1110</code>) because the Sentinel ARM API rejects dotted IDs.
+</div>
+<p>Rule <em>listing</em> (<code>list_sentinel_rules</code>, used for duplicate detection) needs only
+   <code>sentinel_target</code>, not <code>--allow-deploy</code>.</p>
+
+<h3 id="refusals">Refusal fallback <span class="pill">Anthropic</span></h3>
+<p>
+  Claude Fable 5 runs safety classifiers that occasionally decline benign security-adjacent work.
+  When the primary model refuses, <code>sentret</code> discards any partial output (a visible
+  marker is printed), replays the conversation on the fallback model
+  (default <code>claude-opus-4-8</code>), and continues. The run summary notes which model finished:
+</p>
+<pre><code>Note: claude-fable-5 declined (category: cyber); completed on fallback model claude-opus-4-8.</code></pre>
+<p>Disable with <code>--no-fallback</code> or <code>SENTRET_FALLBACK_MODEL=</code> (empty), in which
+   case a refusal ends the run with exit code 1. On the OpenAI provider there is no fallback: a
+   content-filter stop ends the run (exit 1).</p>
+
+<h3 id="troubleshooting">Troubleshooting</h3>
+<table>
+  <tr><th>Symptom</th><th>Cause / fix</th></tr>
+  <tr><td class="wrap"><code>Error: ANTHROPIC_API_KEY is not set</code> (exit 2)</td><td class="wrap">Export the key or add it to <code>.env</code>.</td></tr>
+  <tr><td class="wrap">Error mentioning Microsoft Entra / <code>az login</code></td><td class="wrap">No usable Azure credential. Run <code>az login</code>, or configure a service principal (<code>AZURE_TENANT_ID</code>, <code>AZURE_CLIENT_ID</code>, <code>AZURE_CLIENT_SECRET</code>).</td></tr>
+  <tr><td class="wrap"><code>AuthError</code> on queries (401/403)</td><td class="wrap">Identity lacks <em>Log Analytics Reader</em> on the workspace, or wrong tenant.</td></tr>
+  <tr><td class="wrap"><code>WorkspaceNotFound</code> (404)</td><td class="wrap">Check the workspace GUID in the request.</td></tr>
+  <tr><td class="wrap"><code>Throttled</code> (429)</td><td class="wrap">Log Analytics rate limit; the message includes Retry-After. Re-run later or narrow the queries.</td></tr>
+  <tr><td class="wrap">403 on deployment mentioning <em>Sentinel Contributor</em></td><td class="wrap">The identity needs the Microsoft Sentinel Contributor role on the workspace.</td></tr>
+  <tr><td class="wrap"><code>Query blocked: …</code> lines in the transcript</td><td class="wrap">Working as intended — the safety gate refused a query and told the model why; it normally reformulates and continues. Frequent broad-scan blocks may mean the request needs <code>allow_broad_queries: true</code>.</td></tr>
+  <tr><td class="wrap"><code>Sentinel listing blocked: … operator-approved target</code></td><td class="wrap">The model tried ARM coordinates that don't match <code>sentinel_target</code>, or the target workspace doesn't resolve to the analysed workspace GUID.</td></tr>
+  <tr><td class="wrap">Long silent pauses</td><td class="wrap">Deep reasoning phases. Summarized thinking streams to stderr; if you redirected stderr, check that file. Lower <code>--effort</code> for faster, shallower runs.</td></tr>
+  <tr><td class="wrap">Sovereign cloud auth failures</td><td class="wrap">Set <code>SENTRET_LOG_ANALYTICS_ENDPOINT</code> / <code>SENTRET_ARM_ENDPOINT</code> <em>and</em> <code>AZURE_AUTHORITY_HOST</code> for your cloud.</td></tr>
+  <tr><td class="wrap">Azure: 400 / unsupported api-version or model</td><td class="wrap">Set <code>AZURE_OPENAI_API_VERSION</code> to the version your GPT-5.5 deployment serves, and confirm <code>AZURE_OPENAI_DEPLOYMENT</code> is the deployment name (not the model family).</td></tr>
+  <tr><td class="wrap">Azure: GPT-5.5 not reasoning / shallow answers</td><td class="wrap">Name-based detection can miss opaque deployment names; set <code>SENTRET_REASONING=always</code> to force <code>reasoning_effort</code>.</td></tr>
+  <tr><td class="wrap">Azure: 401 / DefaultAzureCredential errors</td><td class="wrap">Run <code>az login</code> (or configure a managed identity / <code>AZURE_*</code> service principal), and grant it the <em>Cognitive Services OpenAI User</em> role on the Foundry resource — or set <code>AZURE_OPENAI_API_KEY</code> to use a key instead.</td></tr>
+</table>
+
+<h3 id="development">Development</h3>
+<pre><code>npm test            <span class="c"># vitest — 403 tests incl. agent-loop integration tests</span>
+npm run typecheck   <span class="c"># tsc --noEmit (strict)</span>
+npm run build       <span class="c"># compile to dist/ and copy prompt/schema assets</span></code></pre>
+<p>
+  Key source locations: the agent loop lives in <code>src/services/detection_analyser.ts</code>,
+  the query safety gate in <code>src/services/query_safety.ts</code>, redaction in
+  <code>src/services/redaction.ts</code>, the Azure clients in <code>src/tools/</code>, and the
+  model-facing operating specification in <code>src/prompts/kql_analyser_system_prompt.md</code>.
+</p>
+
+</main>
+</div>
+
+<footer>sentret — for authorised defensive security engineering only.</footer>
+
+</body>
+</html>

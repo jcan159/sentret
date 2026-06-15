@@ -1,0 +1,189 @@
+{
+  "tools": [
+    {
+      "name": "run_log_analytics_query",
+      "description": "Runs a KQL query against one or more Azure Log Analytics workspaces using the Azure Monitor Logs Query API.",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "workspace_id": {
+            "type": "string",
+            "description": "Primary Log Analytics workspace GUID."
+          },
+          "query": {
+            "type": "string",
+            "description": "KQL query to execute."
+          },
+          "timespan": {
+            "type": "string",
+            "description": "ISO 8601 duration or start/end range. Example: PT24H or 2026-06-01/2026-06-08."
+          },
+          "additional_workspaces": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Optional additional workspace IDs for cross-workspace queries."
+          },
+          "prefer": {
+            "type": "object",
+            "properties": {
+              "include_statistics": {
+                "type": "boolean"
+              },
+              "include_data_sources": {
+                "type": "boolean"
+              },
+              "include_permissions": {
+                "type": "boolean"
+              },
+              "wait_seconds": {
+                "type": "integer"
+              }
+            }
+          },
+          "purpose": {
+            "type": "string",
+            "description": "Why this query is being run, for auditability."
+          },
+          "max_rows_expected": {
+            "type": "integer",
+            "description": "Expected maximum returned rows for safety."
+          }
+        },
+        "required": [
+          "workspace_id",
+          "query",
+          "timespan",
+          "purpose"
+        ]
+      }
+    },
+    {
+      "name": "create_or_update_sentinel_rule",
+      "description": "Creates or updates a Microsoft Sentinel scheduled analytics rule after user approval.",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "subscription_id": {
+            "type": "string"
+          },
+          "resource_group": {
+            "type": "string"
+          },
+          "workspace_name": {
+            "type": "string"
+          },
+          "rule_id": {
+            "type": "string"
+          },
+          "enabled": {
+            "type": "boolean"
+          },
+          "display_name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "severity": {
+            "type": "string",
+            "enum": [
+              "Informational",
+              "Low",
+              "Medium",
+              "High"
+            ]
+          },
+          "query": {
+            "type": "string"
+          },
+          "query_frequency": {
+            "type": "string"
+          },
+          "query_period": {
+            "type": "string"
+          },
+          "trigger_operator": {
+            "type": "string",
+            "enum": [
+              "GreaterThan",
+              "LessThan",
+              "Equal",
+              "NotEqual"
+            ]
+          },
+          "trigger_threshold": {
+            "type": "integer"
+          },
+          "tactics": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "techniques": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "entity_mappings": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          },
+          "custom_details": {
+            "type": "object"
+          },
+          "alert_details_override": {
+            "type": "object"
+          },
+          "incident_configuration": {
+            "type": "object"
+          },
+          "event_grouping_settings": {
+            "type": "object"
+          },
+          "suppression_enabled": {
+            "type": "boolean"
+          },
+          "suppression_duration": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "subscription_id",
+          "resource_group",
+          "workspace_name",
+          "rule_id",
+          "display_name",
+          "enabled",
+          "severity",
+          "query",
+          "query_frequency",
+          "query_period",
+          "trigger_operator",
+          "trigger_threshold"
+        ]
+      }
+    },
+    {
+      "name": "list_sentinel_rules",
+      "description": "Lists existing Sentinel analytics rules to detect duplicates, naming conflicts, and similar logic."
+    },
+    {
+      "name": "get_workspace_schema",
+      "description": "Retrieves known tables, columns, and types for a Log Analytics workspace."
+    },
+    {
+      "name": "save_detection_report",
+      "description": "Saves the final report as JSON, Markdown, HTML, or ticket payload."
+    },
+    {
+      "name": "lookup_mitre_attack",
+      "description": "Looks up MITRE ATT&CK tactics, techniques, and sub-techniques."
+    }
+  ]
+}

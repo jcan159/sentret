@@ -1,0 +1,51 @@
+{
+  "name": "sentret",
+  "version": "0.1.0",
+  "description": "Provider-agnostic, LLM-powered KQL detection rule analyser for Microsoft Sentinel / Azure Log Analytics (Anthropic, OpenAI, Azure AI Foundry).",
+  "license": "MIT",
+  "keywords": [
+    "kql",
+    "microsoft-sentinel",
+    "azure-log-analytics",
+    "detection-engineering",
+    "threat-hunting",
+    "siem",
+    "llm",
+    "security"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jcan159/sentret.git"
+  },
+  "homepage": "https://github.com/jcan159/sentret#readme",
+  "bugs": {
+    "url": "https://github.com/jcan159/sentret/issues"
+  },
+  "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
+  "bin": {
+    "sentret": "./dist/cli.js"
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json && cp -R src/prompts dist/prompts && cp -R src/schemas dist/schemas",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "analyse": "tsx src/cli.ts"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.104.1",
+    "@azure/identity": "^4.5.0",
+    "openai": "^6.42.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.7.0",
+    "vitest": "^2.1.0"
+  }
+}

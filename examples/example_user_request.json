@@ -1,0 +1,12 @@
+{
+  "mode": "analyse_existing_rule",
+  "detection_intent": "Detect suspicious successful sign-ins from countries the user has not previously used.",
+  "workspace_id": "00000000-0000-0000-0000-000000000000",
+  "timespan": "P7D",
+  "rule_frequency": "PT1H",
+  "rule_period": "P7D",
+  "allow_query_execution": true,
+  "allow_raw_examples": false,
+  "noise_tolerance": "Medium",
+  "kql": "SigninLogs | where ResultType == 0 | summarize count() by UserPrincipalName, Location"
+}

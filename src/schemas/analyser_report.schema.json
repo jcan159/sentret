@@ -1,0 +1,555 @@
+{
+  "description": "Canonical contract for the KQL Detection Rule Analyser report. Mirrors the AnalyserReport interface in src/types.ts; suitable for direct use as an Anthropic tool input_schema (no $ref/$defs, no numeric range keywords — ranges are documented in field descriptions).",
+  "type": "object",
+  "properties": {
+    "analysis_id": {
+      "type": "string",
+      "description": "Unique identifier for this analysis run."
+    },
+    "timestamp_utc": {
+      "type": "string",
+      "description": "ISO 8601 UTC timestamp of when the analysis completed."
+    },
+    "mode": {
+      "type": "string",
+      "enum": ["analyse_existing_rule", "create_new_detection"],
+      "description": "Whether an existing rule was analysed or a new detection was created."
+    },
+    "workspace_id": {
+      "type": "string",
+      "description": "Log Analytics workspace ID the analysis targeted."
+    },
+    "detection_intent": {
+      "type": "string",
+      "description": "The behaviour the detection is intended to catch, as interpreted by the analyser."
+    },
+    "verdict": {
+      "type": "string",
+      "enum": ["Deploy as-is", "Deploy after changes", "Test only", "Do not deploy"],
+      "description": "Deployment verdict."
+    },
+    "overall_score": {
+      "type": "integer",
+      "description": "Overall weighted score, integer in the range 0-100 per the scoring model."
+    },
+    "rating": {
+      "type": "string",
+      "enum": ["Excellent", "Good", "Needs Tuning", "Weak", "Not Deployable"],
+      "description": "Qualitative rating derived from the overall score."
+    },
+    "summary": {
+      "type": "object",
+      "description": "Executive summary of the analysis.",
+      "properties": {
+        "main_finding": {
+          "type": "string",
+          "description": "Single most important finding."
+        },
+        "recommended_action": {
+          "type": "string",
+          "description": "What the user should do next."
+        },
+        "top_strengths": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Top strengths of the detection (typically up to 3)."
+        },
+        "top_issues": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Top issues found (typically up to 3)."
+        },
+        "required_fixes": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Fixes required before deployment."
+        }
+      },
+      "required": [
+        "main_finding",
+        "recommended_action",
+        "top_strengths",
+        "top_issues",
+        "required_fixes"
+      ]
+    },
+    "kql": {
+      "type": "object",
+      "description": "Original, recommended, and alternative KQL queries.",
+      "properties": {
+        "original_query": {
+          "type": ["string", "null"],
+          "description": "The user-supplied query, or null in create_new_detection mode."
+        },
+        "recommended_query": {
+          "type": "string",
+          "description": "Production-ready recommended KQL."
+        },
+        "alternative_queries": {
+          "type": "array",
+          "description": "Optional alternative query variants.",
+          "items": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string",
+                "description": "Short name for the variant."
+              },
+              "purpose": {
+                "type": "string",
+                "description": "Why this variant exists."
+              },
+              "query": {
+                "type": "string",
+                "description": "The alternative KQL query."
+              }
+            },
+            "required": ["name", "purpose", "query"]
+          }
+        }
+      },
+      "required": ["original_query", "recommended_query", "alternative_queries"]
+    },
+    "static_review": {
+      "type": "object",
+      "description": "Findings from static review of the KQL.",
+      "properties": {
+        "tables": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Tables referenced by the query."
+        },
+        "columns": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Key columns referenced by the query."
+        },
+        "entities": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Entity types present in the output (Account, Host, IP, ...)."
+        },
+        "syntax_issues": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Syntax problems found."
+        },
+        "logic_issues": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Logic problems found."
+        },
+        "schema_risks": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Risks from schema variation or missing fields."
+        },
+        "time_window_issues": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Problems with time filtering or windows."
+        },
+        "performance_risks": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Static performance concerns."
+        }
+      },
+      "required": [
+        "tables",
+        "columns",
+        "entities",
+        "syntax_issues",
+        "logic_issues",
+        "schema_risks",
+        "time_window_issues",
+        "performance_risks"
+      ]
+    },
+    "workspace_validation": {
+      "type": "object",
+      "description": "Results of live validation against the workspace.",
+      "properties": {
+        "execution_allowed": {
+          "type": "boolean",
+          "description": "Whether query execution was permitted; when false, all validation arrays are empty."
+        },
+        "timespan": {
+          "type": "string",
+          "description": "ISO 8601 duration or start/end range used for validation."
+        },
+        "queries_run": {
+          "type": "array",
+          "description": "Validation queries that were executed (or skipped).",
+          "items": {
+            "type": "object",
+            "properties": {
+              "purpose": {
+                "type": "string",
+                "description": "Why the query was run."
+              },
+              "query": {
+                "type": "string",
+                "description": "The KQL that was run."
+              },
+              "status": {
+                "type": "string",
+                "enum": ["Succeeded", "Failed", "Skipped"],
+                "description": "Execution outcome."
+              },
+              "row_count": {
+                "type": "integer",
+                "description": "Rows returned; integer, 0 or greater."
+              },
+              "error": {
+                "type": ["string", "null"],
+                "description": "Error message, or null when the query succeeded or was skipped."
+              }
+            },
+            "required": ["purpose", "query", "status", "row_count", "error"]
+          }
+        },
+        "data_availability": {
+          "type": "array",
+          "description": "Per-table data availability findings.",
+          "items": {
+            "type": "object",
+            "properties": {
+              "table": {
+                "type": "string",
+                "description": "Table name."
+              },
+              "exists": {
+                "type": "boolean",
+                "description": "Whether the table exists in the workspace."
+              },
+              "row_count": {
+                "type": "integer",
+                "description": "Rows observed in the validation timespan; integer, 0 or greater."
+              },
+              "min_timegenerated": {
+                "type": ["string", "null"],
+                "description": "Earliest TimeGenerated observed, or null if no data."
+              },
+              "max_timegenerated": {
+                "type": ["string", "null"],
+                "description": "Latest TimeGenerated observed, or null if no data."
+              }
+            },
+            "required": [
+              "table",
+              "exists",
+              "row_count",
+              "min_timegenerated",
+              "max_timegenerated"
+            ]
+          }
+        },
+        "field_population": {
+          "type": "array",
+          "description": "Per-field population statistics.",
+          "items": {
+            "type": "object",
+            "properties": {
+              "table": {
+                "type": "string",
+                "description": "Table the field belongs to."
+              },
+              "field": {
+                "type": "string",
+                "description": "Field name."
+              },
+              "populated_count": {
+                "type": "integer",
+                "description": "Rows where the field is populated; integer, 0 or greater."
+              },
+              "total_count": {
+                "type": "integer",
+                "description": "Total rows checked; integer, 0 or greater."
+              },
+              "population_percent": {
+                "type": "number",
+                "description": "Population percentage in the range 0-100; may be fractional."
+              }
+            },
+            "required": [
+              "table",
+              "field",
+              "populated_count",
+              "total_count",
+              "population_percent"
+            ]
+          }
+        }
+      },
+      "required": [
+        "execution_allowed",
+        "timespan",
+        "queries_run",
+        "data_availability",
+        "field_population"
+      ]
+    },
+    "performance": {
+      "type": "object",
+      "description": "Performance review of the recommended query.",
+      "properties": {
+        "rating": {
+          "type": "string",
+          "enum": ["Excellent", "Good", "Moderate", "Poor", "Failed"],
+          "description": "Overall performance rating."
+        },
+        "execution_time_ms": {
+          "type": "integer",
+          "description": "Observed execution time in milliseconds; integer, 0 or greater (0 when not executed)."
+        },
+        "statistics_available": {
+          "type": "boolean",
+          "description": "Whether query runtime statistics were available."
+        },
+        "statistics_summary": {
+          "type": "string",
+          "description": "Plain-text summary of runtime statistics."
+        },
+        "bottlenecks": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Identified performance bottlenecks."
+        },
+        "optimisations": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Applied or suggested optimisations."
+        }
+      },
+      "required": [
+        "rating",
+        "execution_time_ms",
+        "statistics_available",
+        "statistics_summary",
+        "bottlenecks",
+        "optimisations"
+      ]
+    },
+    "detection_quality": {
+      "type": "object",
+      "description": "Sub-scores and risk assessment per the scoring model (section 8 of the system prompt).",
+      "properties": {
+        "intent_alignment_score": {
+          "type": "integer",
+          "description": "Intent alignment; integer in the range 0-20."
+        },
+        "syntax_schema_score": {
+          "type": "integer",
+          "description": "Syntax and schema correctness; integer in the range 0-15."
+        },
+        "data_coverage_score": {
+          "type": "integer",
+          "description": "Data availability and coverage; integer in the range 0-10."
+        },
+        "precision_score": {
+          "type": "integer",
+          "description": "Precision; integer in the range 0-15."
+        },
+        "recall_score": {
+          "type": "integer",
+          "description": "Recall; integer in the range 0-10."
+        },
+        "performance_score": {
+          "type": "integer",
+          "description": "Performance; integer in the range 0-15."
+        },
+        "sentinel_readiness_score": {
+          "type": "integer",
+          "description": "Sentinel readiness; integer in the range 0-10."
+        },
+        "maintainability_score": {
+          "type": "integer",
+          "description": "Maintainability; integer in the range 0-5."
+        },
+        "false_positive_risk": {
+          "type": "string",
+          "enum": ["Low", "Medium", "High"],
+          "description": "Risk of false positives."
+        },
+        "false_negative_risk": {
+          "type": "string",
+          "enum": ["Low", "Medium", "High"],
+          "description": "Risk of false negatives."
+        },
+        "known_blind_spots": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Behaviours the detection is known to miss."
+        }
+      },
+      "required": [
+        "intent_alignment_score",
+        "syntax_schema_score",
+        "data_coverage_score",
+        "precision_score",
+        "recall_score",
+        "performance_score",
+        "sentinel_readiness_score",
+        "maintainability_score",
+        "false_positive_risk",
+        "false_negative_risk",
+        "known_blind_spots"
+      ]
+    },
+    "sentinel_rule": {
+      "type": "object",
+      "description": "Recommended Microsoft Sentinel scheduled analytics rule configuration.",
+      "properties": {
+        "display_name": {
+          "type": "string",
+          "description": "Clear, behaviour-led rule display name."
+        },
+        "description": {
+          "type": "string",
+          "description": "Rule description including triage context."
+        },
+        "enabled_recommendation": {
+          "type": "boolean",
+          "description": "Whether the rule should be enabled immediately (false = deploy disabled / audit first)."
+        },
+        "severity": {
+          "type": "string",
+          "enum": ["Informational", "Low", "Medium", "High"],
+          "description": "Recommended alert severity."
+        },
+        "query_frequency": {
+          "type": "string",
+          "description": "ISO 8601 duration, e.g. PT1H."
+        },
+        "query_period": {
+          "type": "string",
+          "description": "ISO 8601 duration, e.g. PT1H or P1D."
+        },
+        "trigger_operator": {
+          "type": "string",
+          "enum": ["GreaterThan", "LessThan", "Equal", "NotEqual"],
+          "description": "Comparison applied to the result count."
+        },
+        "trigger_threshold": {
+          "type": "integer",
+          "description": "Result-count threshold; integer, 0 or greater."
+        },
+        "tactics": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "MITRE ATT&CK tactics in Sentinel enum form, e.g. CredentialAccess."
+        },
+        "techniques": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "MITRE ATT&CK technique IDs, e.g. T1110.003."
+        },
+        "entity_mappings": {
+          "type": "array",
+          "description": "Sentinel entity mappings.",
+          "items": {
+            "type": "object",
+            "properties": {
+              "entityType": {
+                "type": "string",
+                "description": "Sentinel entity type, e.g. Account, Host, IP, URL, FileHash."
+              },
+              "fieldMappings": {
+                "type": "array",
+                "description": "Identifier-to-column mappings for the entity.",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "identifier": {
+                      "type": "string",
+                      "description": "Entity identifier name, e.g. FullName, Address."
+                    },
+                    "columnName": {
+                      "type": "string",
+                      "description": "Query output column mapped to the identifier."
+                    }
+                  },
+                  "required": ["identifier", "columnName"]
+                }
+              }
+            },
+            "required": ["entityType", "fieldMappings"]
+          }
+        },
+        "custom_details": {
+          "type": "object",
+          "description": "Free-form map of custom detail name to query column name (string values)."
+        },
+        "alert_details_override": {
+          "type": "object",
+          "description": "Free-form alert details override object (e.g. alertDisplayNameFormat); empty object when unused."
+        },
+        "incident_configuration": {
+          "type": "object",
+          "description": "Free-form incident creation/grouping configuration; empty object when unused."
+        },
+        "event_grouping_settings": {
+          "type": "object",
+          "description": "Free-form event grouping settings (e.g. aggregationKind); empty object when unused."
+        },
+        "suppression_enabled": {
+          "type": "boolean",
+          "description": "Whether alert suppression is recommended."
+        },
+        "suppression_duration": {
+          "type": ["string", "null"],
+          "description": "ISO 8601 suppression duration, or null when suppression is disabled."
+        }
+      },
+      "required": [
+        "display_name",
+        "description",
+        "enabled_recommendation",
+        "severity",
+        "query_frequency",
+        "query_period",
+        "trigger_operator",
+        "trigger_threshold",
+        "tactics",
+        "techniques",
+        "entity_mappings",
+        "custom_details",
+        "alert_details_override",
+        "incident_configuration",
+        "event_grouping_settings",
+        "suppression_enabled",
+        "suppression_duration"
+      ]
+    },
+    "limitations": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "What the analysis could not confirm."
+    },
+    "assumptions": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Assumptions the analysis relied on."
+    }
+  },
+  "required": [
+    "analysis_id",
+    "timestamp_utc",
+    "mode",
+    "workspace_id",
+    "detection_intent",
+    "verdict",
+    "overall_score",
+    "rating",
+    "summary",
+    "kql",
+    "static_review",
+    "workspace_validation",
+    "performance",
+    "detection_quality",
+    "sentinel_rule",
+    "limitations",
+    "assumptions"
+  ]
+}
