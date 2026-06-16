@@ -38,6 +38,8 @@ export interface ServerOptions {
   analyserFactory?: AnalyserFactory;
   /** Static asset directory; defaults to the bundled public/ folder. */
   publicDir?: string;
+  /** Environment used to detect which providers have credentials. Defaults to process.env. */
+  env?: NodeJS.ProcessEnv;
 }
 
 interface AnalysePayload {
@@ -75,8 +77,17 @@ function defaultAnalyserFactory(config: AnalyserConfig, sinks: AnalyserSinks): D
   });
 }
 
+/** Which providers have credentials configured (booleans only — never the keys). */
+function providerAvailability(env: NodeJS.ProcessEnv): Record<string, boolean> {
+  return {
+    anthropic: Boolean(env.ANTHROPIC_API_KEY || env.ANTHROPIC_AUTH_TOKEN),
+    openai: Boolean(env.OPENAI_API_KEY),
+    azure: Boolean(env.AZURE_OPENAI_ENDPOINT),
+  };
+}
+
 /** Non-secret subset of config, safe to expose to the browser. */
-function publicConfig(config: AnalyserConfig): Record<string, unknown> {
+function publicConfig(config: AnalyserConfig, env: NodeJS.ProcessEnv): Record<string, unknown> {
   return {
     provider: config.provider,
     anthropicModel: config.anthropicModel,
@@ -86,6 +97,8 @@ function publicConfig(config: AnalyserConfig): Record<string, unknown> {
     allowDeploy: config.allowDeploy,
     logAnalyticsEndpoint: config.logAnalyticsEndpoint,
     armEndpoint: config.armEndpoint,
+    // booleans only — the keys themselves are never exposed.
+    available: providerAvailability(env),
   };
 }
 
@@ -107,12 +120,13 @@ function withOverrides(base: AnalyserConfig, overrides?: AnalysePayload["overrid
 // ---------------------------------------------------------------------------
 
 export function createSentretServer(opts: ServerOptions = {}): Server {
-  const baseConfig = opts.baseConfig ?? loadConfig();
+  const env = opts.env ?? process.env;
+  const baseConfig = opts.baseConfig ?? loadConfig(env);
   const factory = opts.analyserFactory ?? defaultAnalyserFactory;
   const publicDir = opts.publicDir ?? fileURLToPath(new URL("./public/", import.meta.url));
 
   return createHttpServer((req, res) => {
-    handle(req, res, { baseConfig, factory, publicDir }).catch((error: unknown) => {
+    handle(req, res, { baseConfig, factory, publicDir, env }).catch((error: unknown) => {
       if (!res.headersSent) {
         res.writeHead(500, { "Content-Type": "application/json" });
       }
@@ -140,6 +154,7 @@ interface HandlerCtx {
   baseConfig: AnalyserConfig;
   factory: AnalyserFactory;
   publicDir: string;
+  env: NodeJS.ProcessEnv;
 }
 
 async function handle(req: IncomingMessage, res: ServerResponse, ctx: HandlerCtx): Promise<void> {
@@ -150,7 +165,7 @@ async function handle(req: IncomingMessage, res: ServerResponse, ctx: HandlerCtx
     return sendJson(res, 200, { status: "ok" });
   }
   if (req.method === "GET" && pathname === "/api/config") {
-    return sendJson(res, 200, publicConfig(ctx.baseConfig));
+    return sendJson(res, 200, publicConfig(ctx.baseConfig, ctx.env));
   }
   if (req.method === "POST" && pathname === "/api/analyse") {
     return handleAnalyse(req, res, ctx);

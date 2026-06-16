@@ -31,7 +31,7 @@
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "scripts": {
-    "build": "tsc -p tsconfig.build.json && cp -R src/prompts dist/prompts && cp -R src/schemas dist/schemas && cp -R src/server/public dist/server/public",
+    "build": "rm -rf dist && tsc -p tsconfig.build.json && cp -R src/prompts dist/prompts && cp -R src/schemas dist/schemas && cp -R src/server/public dist/server/public",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",

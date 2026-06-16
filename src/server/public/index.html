@@ -99,6 +99,12 @@
 
     <div class="row">
       <div>
+        <label>LLM provider <span class="hint">— from your configured keys</span></label>
+        <select id="provider">
+          <option value="">Server default</option>
+        </select>
+      </div>
+      <div>
         <label>Timespan</label>
         <input type="text" id="timespan" value="P7D" placeholder="P7D / PT24H / start/end">
       </div>
@@ -118,15 +124,6 @@
       <summary>Advanced</summary>
       <div class="row">
         <div>
-          <label>Provider override</label>
-          <select id="provider">
-            <option value="">(use server default)</option>
-            <option value="anthropic">anthropic</option>
-            <option value="openai">openai</option>
-            <option value="azure">azure</option>
-          </select>
-        </div>
-        <div>
           <label>Effort</label>
           <select id="effort">
             <option value="">(default)</option>
@@ -137,6 +134,7 @@
             <option value="max">max</option>
           </select>
         </div>
+        <div></div>
       </div>
       <div class="row" style="margin-top:.5rem">
         <div>

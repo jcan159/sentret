@@ -20,17 +20,44 @@ let lastReport = null;
 let lastMarkdown = "";
 
 // --- Load server config (non-secret) -------------------------------------
+const PROVIDER_META = {
+  anthropic: { label: "Claude (Anthropic)" },
+  openai: { label: "OpenAI" },
+  azure: { label: "Azure AI Foundry" },
+};
+
+function modelFor(cfg, provider) {
+  if (provider === "openai") return cfg.openaiModel;
+  if (provider === "azure") return cfg.azureDeployment || "deployment unset";
+  return cfg.anthropicModel;
+}
+
+function populateProviders(cfg) {
+  const sel = $("provider");
+  const available = cfg.available || {};
+  const defaultModel = modelFor(cfg, cfg.provider);
+  const opts = [el("option", { value: "", text: `Server default — ${cfg.provider} (${defaultModel})` })];
+  for (const key of ["anthropic", "openai", "azure"]) {
+    const meta = PROVIDER_META[key];
+    const has = !!available[key];
+    const model = modelFor(cfg, key);
+    const text = has ? `${meta.label} · ${model}` : `${meta.label} — no key configured`;
+    const props = { value: key, text };
+    if (!has) props.disabled = "disabled";
+    opts.push(el("option", props));
+  }
+  sel.replaceChildren(...opts);
+  sel.value = ""; // default to the server's auto-detected provider
+
+  const noneAvailable = !available.anthropic && !available.openai && !available.azure;
+  $("provider-badge").textContent = noneAvailable
+    ? "provider: no API keys configured"
+    : `provider: ${cfg.provider} · ${defaultModel}`;
+}
+
 fetch("/api/config")
   .then((r) => r.json())
-  .then((cfg) => {
-    const model =
-      cfg.provider === "openai"
-        ? cfg.openaiModel
-        : cfg.provider === "azure"
-          ? cfg.azureDeployment || "(deployment unset)"
-          : cfg.anthropicModel;
-    $("provider-badge").textContent = `provider: ${cfg.provider} · ${model}`;
-  })
+  .then(populateProviders)
   .catch(() => {
     $("provider-badge").textContent = "provider: unavailable";
   });

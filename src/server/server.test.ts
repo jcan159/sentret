@@ -49,7 +49,11 @@ async function startTestServer(factory: AnalyserFactory): Promise<void> {
     auditLogPath: path.join(dir, "audit.jsonl"),
     allowDeploy: true, // ensure the web layer forces this back to false
   });
-  server = createSentretServer({ baseConfig: config, analyserFactory: factory });
+  server = createSentretServer({
+    baseConfig: config,
+    analyserFactory: factory,
+    env: { ANTHROPIC_API_KEY: "test-key" } as NodeJS.ProcessEnv,
+  });
   await new Promise<void>((resolve) => server.listen(0, "127.0.0.1", resolve));
   const addr = server.address() as AddressInfo;
   base = `http://127.0.0.1:${addr.port}`;
@@ -93,11 +97,14 @@ describe("Sentret web server", () => {
     expect(cfg.provider).toBe(config.provider);
     expect(cfg).toHaveProperty("anthropicModel");
     expect(cfg).toHaveProperty("effort");
-    // No secret material should ever appear.
+    // Provider availability is booleans only (derived from injected env).
+    expect(cfg.available).toEqual({ anthropic: true, openai: false, azure: false });
+    // No secret material should ever appear — not even the injected key value.
     const serialized = JSON.stringify(cfg).toLowerCase();
     expect(serialized).not.toContain("api_key");
     expect(serialized).not.toContain("apikey");
     expect(serialized).not.toContain("token");
+    expect(serialized).not.toContain("test-key");
   });
 
   it("GET / serves the web UI", async () => {
