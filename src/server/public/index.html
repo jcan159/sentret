@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sentret — KQL Detection Rule Analyser</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Ctext y='14' font-size='14'%3E%F0%9F%94%8E%3C/text%3E%3C/svg%3E">
+<style>
+  :root {
+    --bg: #f7f6f2; --panel: #fff; --ink: #1f2a30; --muted: #5c6b73;
+    --accent: #0e6e6b; --accent-soft: #e3f0ef; --border: #ddd8cd;
+    --code-bg: #15211f; --code-ink: #d7e6e2;
+    --warn-bg: #fdf3e4; --warn-edge: #c97b1f; --danger-bg: #faeaea; --danger-edge: #a63c3c;
+    --ok: #1c7c54;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: "Avenir Next","Segoe UI",system-ui,sans-serif; background: var(--bg); color: var(--ink); line-height: 1.5; }
+  header { background: var(--code-bg); color: #f2efe7; padding: 1.1rem 1.5rem; display: flex; align-items: baseline; gap: 1rem; flex-wrap: wrap; }
+  header h1 { margin: 0; font-size: 1.25rem; }
+  header h1 code { color: #8fd6c9; font-family: ui-monospace, Menlo, Consolas, monospace; }
+  header .tag { color: #b9c8c4; font-size: .85rem; }
+  header .spacer { flex: 1; }
+  .provider-badge { font-size: .78rem; background: #21413e; color: #cfeae4; padding: .2rem .6rem; border-radius: 999px; }
+  main { max-width: 1180px; margin: 0 auto; padding: 1.3rem 1.5rem 3rem; display: grid; grid-template-columns: 380px 1fr; gap: 1.4rem; align-items: start; }
+  .card { background: var(--panel); border: 1px solid var(--border); border-radius: 10px; padding: 1.1rem; }
+  .card h2 { margin: 0 0 .8rem; font-size: 1rem; color: var(--accent); }
+  label { display: block; font-size: .82rem; font-weight: 600; margin: .7rem 0 .2rem; }
+  label .hint { font-weight: 400; color: var(--muted); }
+  input[type=text], textarea, select {
+    width: 100%; font: inherit; font-size: .88rem; padding: .45rem .55rem;
+    border: 1px solid var(--border); border-radius: 6px; background: #fff; color: var(--ink);
+  }
+  textarea { resize: vertical; min-height: 3.2rem; font-family: ui-monospace, Menlo, Consolas, monospace; font-size: .82rem; }
+  textarea#kql { min-height: 6rem; }
+  .row { display: flex; gap: .8rem; }
+  .row > div { flex: 1; }
+  .checks { display: flex; flex-direction: column; gap: .35rem; margin-top: .6rem; }
+  .checks label { display: flex; align-items: center; gap: .45rem; font-weight: 400; margin: 0; font-size: .85rem; }
+  .checks input { width: auto; }
+  details { margin-top: .8rem; border-top: 1px dashed var(--border); padding-top: .6rem; }
+  summary { cursor: pointer; font-size: .82rem; font-weight: 600; color: var(--muted); }
+  .actions { display: flex; gap: .6rem; margin-top: 1rem; }
+  button { font: inherit; font-weight: 600; border: none; border-radius: 7px; padding: .55rem .9rem; cursor: pointer; }
+  button.primary { background: var(--accent); color: #fff; }
+  button.primary:disabled { background: #9bb8b5; cursor: not-allowed; }
+  button.ghost { background: var(--accent-soft); color: #0b4f4d; }
+  .results { display: flex; flex-direction: column; gap: 1.1rem; min-width: 0; }
+  .verdict { display: none; align-items: center; gap: 1rem; flex-wrap: wrap; }
+  .verdict.show { display: flex; }
+  .score { font-size: 2rem; font-weight: 700; }
+  .badge { font-size: .85rem; font-weight: 600; padding: .25rem .7rem; border-radius: 999px; background: var(--accent-soft); color: #0b4f4d; }
+  .badge.warn { background: var(--warn-bg); color: var(--warn-edge); }
+  .badge.danger { background: var(--danger-bg); color: var(--danger-edge); }
+  .badge.ok { background: #e2f3ea; color: var(--ok); }
+  .stream { background: var(--code-bg); color: var(--code-ink); border-radius: 8px; padding: .8rem 1rem; font-family: ui-monospace, Menlo, Consolas, monospace; font-size: .8rem; white-space: pre-wrap; word-break: break-word; max-height: 280px; overflow-y: auto; min-height: 2.5rem; }
+  .stream:empty::before { content: "Run output will stream here…"; color: #5d7672; }
+  .activity { display: flex; flex-direction: column; gap: .3rem; }
+  .activity .ev { font-size: .8rem; padding: .35rem .55rem; border-radius: 6px; background: var(--accent-soft); color: #0b4f4d; }
+  .activity .ev.thinking { background: #efeafc; color: #5b3fa6; }
+  .activity .ev.err { background: var(--danger-bg); color: var(--danger-edge); }
+  pre.code { background: var(--code-bg); color: var(--code-ink); border-radius: 8px; padding: .8rem 1rem; overflow-x: auto; font-size: .8rem; }
+  .kv { font-size: .85rem; }
+  .kv div { display: flex; gap: .5rem; padding: .15rem 0; }
+  .kv .k { color: var(--muted); min-width: 150px; }
+  ul.tight { margin: .3rem 0; padding-left: 1.1rem; font-size: .85rem; }
+  ul.tight li { margin: .15rem 0; }
+  .muted { color: var(--muted); font-size: .82rem; }
+  .hidden { display: none; }
+  .note { font-size: .78rem; color: var(--muted); margin-top: .6rem; }
+  .spinner { display: inline-block; width: .9rem; height: .9rem; border: 2px solid #ffffff66; border-top-color: #fff; border-radius: 50%; animation: spin .7s linear infinite; vertical-align: -2px; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  @media (max-width: 900px) { main { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<header>
+  <h1><code>sentret</code></h1>
+  <span class="tag">KQL Detection Rule Analyser</span>
+  <span class="spacer"></span>
+  <span class="provider-badge" id="provider-badge">provider: …</span>
+</header>
+
+<main>
+  <!-- ------------------------------------------------------------------ -->
+  <form class="card" id="form" autocomplete="off">
+    <h2>Detection request</h2>
+
+    <label>Mode</label>
+    <select id="mode">
+      <option value="analyse_existing_rule">Analyse an existing rule</option>
+      <option value="create_new_detection">Create a new detection</option>
+    </select>
+
+    <label>Detection intent <span class="hint">— what should it detect?</span></label>
+    <textarea id="detection_intent" placeholder="e.g. Detect successful sign-ins from countries the user has not used before."></textarea>
+
+    <label>Workspace ID <span class="hint">— Log Analytics GUID</span></label>
+    <input type="text" id="workspace_id" placeholder="00000000-0000-0000-0000-000000000000">
+
+    <div class="row">
+      <div>
+        <label>Timespan</label>
+        <input type="text" id="timespan" value="P7D" placeholder="P7D / PT24H / start/end">
+      </div>
+    </div>
+
+    <div id="kql-wrap">
+      <label>Existing KQL <span class="hint">— required for analyse mode</span></label>
+      <textarea id="kql" placeholder="SigninLogs | where ResultType == 0 | summarize count() by UserPrincipalName, Location"></textarea>
+    </div>
+
+    <div class="checks">
+      <label><input type="checkbox" id="allow_query_execution" checked> Run live validation queries (uncheck for static-only)</label>
+      <label><input type="checkbox" id="allow_raw_examples"> Allow raw examples (disable result redaction)</label>
+    </div>
+
+    <details>
+      <summary>Advanced</summary>
+      <div class="row">
+        <div>
+          <label>Provider override</label>
+          <select id="provider">
+            <option value="">(use server default)</option>
+            <option value="anthropic">anthropic</option>
+            <option value="openai">openai</option>
+            <option value="azure">azure</option>
+          </select>
+        </div>
+        <div>
+          <label>Effort</label>
+          <select id="effort">
+            <option value="">(default)</option>
+            <option value="low">low</option>
+            <option value="medium">medium</option>
+            <option value="high">high</option>
+            <option value="xhigh">xhigh</option>
+            <option value="max">max</option>
+          </select>
+        </div>
+      </div>
+      <div class="row" style="margin-top:.5rem">
+        <div>
+          <label>Severity preference</label>
+          <select id="severity_preference">
+            <option value="">(none)</option>
+            <option>Informational</option><option>Low</option><option>Medium</option><option>High</option>
+          </select>
+        </div>
+        <div>
+          <label>Noise tolerance</label>
+          <select id="noise_tolerance">
+            <option value="">(none)</option>
+            <option>Low</option><option>Medium</option><option>High</option>
+          </select>
+        </div>
+      </div>
+      <div class="row" style="margin-top:.5rem">
+        <div><label>Rule frequency</label><input type="text" id="rule_frequency" placeholder="PT1H"></div>
+        <div><label>Rule period</label><input type="text" id="rule_period" placeholder="P1D"></div>
+      </div>
+    </details>
+
+    <div class="actions">
+      <button type="submit" class="primary" id="run">Analyse</button>
+      <button type="button" class="ghost" id="example">Load example</button>
+    </div>
+    <p class="note">Runs locally. Credentials stay on the server — they are never sent to the browser.
+       Sentinel deployment is disabled in the web UI (CLI only).</p>
+  </form>
+
+  <!-- ------------------------------------------------------------------ -->
+  <section class="results">
+    <div class="card">
+      <div class="verdict" id="verdict">
+        <span class="score" id="score"></span>
+        <span class="badge" id="verdict-badge"></span>
+        <span class="badge" id="rating-badge"></span>
+        <span class="muted" id="model-used"></span>
+      </div>
+      <h2 id="run-title">Run</h2>
+      <div class="stream" id="stream"></div>
+      <div class="activity" id="activity" style="margin-top:.7rem"></div>
+    </div>
+
+    <div class="card hidden" id="report-card">
+      <h2>Report</h2>
+      <div id="report"></div>
+      <div class="actions">
+        <button type="button" class="ghost" id="dl-json">Download JSON</button>
+        <button type="button" class="ghost" id="dl-md">Download Markdown</button>
+      </div>
+    </div>
+  </section>
+</main>
+
+<script src="app.js"></script>
+</body>
+</html>

@@ -14,6 +14,13 @@ export * from "./llm/types.js";
 export { buildProvider } from "./llm/factory.js";
 export { AnthropicProvider } from "./llm/anthropic_provider.js";
 export { OpenAIProvider, type OpenAIProviderOptions } from "./llm/openai_provider.js";
+export {
+  createSentretServer,
+  startServer,
+  type ServerOptions,
+  type AnalyserFactory,
+  type AnalyserSinks,
+} from "./server/server.js";
 export { buildToolDefinitions, loadReportSchema, TOOL_NAMES } from "./services/tool_definitions.js";
 export { assessQuerySafety, validateTimespan } from "./services/query_safety.js";
 export { AuditLog } from "./services/audit_log.js";

@@ -102,6 +102,34 @@ query — executed or blocked — is appended to `audit/queries.jsonl` with its 
 Configuration can also be set through `SENTRET_*` environment variables — see
 `.env.example`.
 
+## Web UI
+
+A local web interface ships alongside the CLI — same engine, no extra runtime
+dependencies (Node's built-in HTTP server + a vanilla single-page frontend).
+
+```bash
+npm run serve        # http://127.0.0.1:8787  (SENTRET_WEB_HOST / SENTRET_WEB_PORT to change)
+```
+
+Open the URL, fill in the request, and watch the run stream live (working text,
+reasoning summaries, and tool activity over Server-Sent Events), then review the
+rendered report — verdict, score, issues, recommended KQL, and Sentinel rule
+config — with JSON/Markdown download.
+
+- **Localhost-only by default**; credentials are read from the environment on
+  the server and are never sent to the browser.
+- **No secrets leave the server** — `GET /api/config` exposes only the active
+  provider/model and endpoints.
+- **Deployment is disabled in the web UI** — it surfaces the recommended rule
+  but never deploys; Sentinel deployment stays a deliberate CLI action
+  (`--allow-deploy`).
+- Report values are rendered via DOM `textContent` (XSS-safe against
+  log-derived content).
+
+Endpoints: `GET /api/health`, `GET /api/config`, `POST /api/analyse`
+(`{ request, overrides? }` → SSE stream). The server is also exported
+(`createSentretServer` / `startServer`) for embedding.
+
 ## How it works
 
 ```text
@@ -131,6 +159,10 @@ src/
     log_analytics_client.ts   Azure Monitor Logs query + metadata API client
     sentinel_client.ts        Sentinel ARM client (list rules, gated deploy)
     mitre.ts                  offline MITRE ATT&CK tactic/technique lookup
+  server/
+    serve.ts                  web UI entry point (npm run serve)
+    server.ts                 localhost HTTP/SSE server wrapping the analyser
+    public/                   static single-page UI (HTML + vanilla JS, no build step)
 ```
 
 The agent loop gives the model these tools, each gated per run:
@@ -187,9 +219,10 @@ Anthropic-specific; on OpenAI a content-filter stop ends the run (no fallback).
 ## Development
 
 ```bash
-npm test            # vitest (unit + agent-loop integration tests)
+npm test            # vitest (unit + agent-loop + server integration tests)
 npm run typecheck   # tsc --noEmit
-npm run build       # compile to dist/ and copy prompt/schema assets
+npm run build       # compile to dist/ and copy prompt/schema/web assets
+npm run serve       # launch the local web UI
 ```
 
 ## Reference documents

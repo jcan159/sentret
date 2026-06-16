@@ -143,6 +143,7 @@
   <a href="#azure">Azure AI Foundry</a>
   <a href="#auth">Authentication</a>
   <a href="#first-run">Your first run</a>
+  <a href="#web-ui">Web UI</a>
   <a class="h" href="#reference">Reference</a>
   <a href="#cli">CLI options</a>
   <a href="#request">Request file format</a>
@@ -277,6 +278,32 @@ node dist/cli.js --input request.json</code></pre>
 Saved: reports/analysis_sentret_2026-06-12_ab12cd34.json
 Saved: reports/analysis_sentret_2026-06-12_ab12cd34.md</code></pre>
 
+<h3 id="web-ui">Web UI</h3>
+<p>
+  Prefer a browser to the CLI? A local web interface ships with Sentret — same engine, same safety
+  gates, no extra runtime dependencies.
+</p>
+<pre><code>npm run serve   <span class="c"># http://127.0.0.1:8787</span></code></pre>
+<p>
+  Fill in the request, hit <strong>Analyse</strong>, and watch the run stream live (working text,
+  reasoning summaries, and tool activity over Server-Sent Events). The rendered report shows the
+  verdict, score, issues, recommended KQL, and Sentinel rule config, with JSON / Markdown download.
+</p>
+<table>
+  <tr><th>Property</th><th>Behaviour</th></tr>
+  <tr><td class="wrap">Binding</td><td class="wrap">Localhost only by default. Change with <code>SENTRET_WEB_HOST</code> / <code>SENTRET_WEB_PORT</code>.</td></tr>
+  <tr><td class="wrap">Credentials</td><td class="wrap">Read from the environment on the server; <strong>never sent to the browser</strong>. <code>GET /api/config</code> returns only the active provider/model and endpoints.</td></tr>
+  <tr><td class="wrap">Deployment</td><td class="wrap"><strong>Disabled in the web UI.</strong> It surfaces the recommended rule but never deploys — Sentinel deployment stays a deliberate CLI action (<code>--allow-deploy</code>).</td></tr>
+  <tr><td class="wrap">Provider / effort</td><td class="wrap">Defaults to the server's config; overridable per run from the Advanced panel.</td></tr>
+  <tr><td class="wrap">Rendering</td><td class="wrap">Report values are inserted via DOM <code>textContent</code> — safe against markup in log-derived content.</td></tr>
+</table>
+<div class="callout">
+  <strong>Endpoints.</strong> <code>GET /api/health</code>, <code>GET /api/config</code>, and
+  <code>POST /api/analyse</code> (<code>{ request, overrides? }</code> &rarr; SSE stream). The server
+  is also exported (<code>createSentretServer</code> / <code>startServer</code>) for embedding in
+  your own app.
+</div>
+
 <h2 id="reference">Reference</h2>
 
 <h3 id="cli">CLI options</h3>
@@ -378,6 +405,8 @@ Saved: reports/analysis_sentret_2026-06-12_ab12cd34.md</code></pre>
   <tr><td><code>SENTRET_ARM_ENDPOINT</code></td><td><code>https://management.azure.com</code></td><td class="wrap">ARM endpoint for Sentinel operations.</td></tr>
   <tr><td><code>SENTRET_OUTPUT_DIR</code></td><td><code>./reports</code></td><td class="wrap">Report directory.</td></tr>
   <tr><td><code>SENTRET_AUDIT_LOG</code></td><td><code>./audit/queries.jsonl</code></td><td class="wrap">Audit log path.</td></tr>
+  <tr><td><code>SENTRET_WEB_HOST</code></td><td><code>127.0.0.1</code></td><td class="wrap">Web UI bind host (<code>npm run serve</code>).</td></tr>
+  <tr><td><code>SENTRET_WEB_PORT</code></td><td><code>8787</code></td><td class="wrap">Web UI port.</td></tr>
   <tr><td><code>SENTRET_MAX_RESULT_ROWS</code></td><td><code>100</code></td><td class="wrap">Row cap on any query result fed to the model.</td></tr>
   <tr><td><code>SENTRET_MAX_RESULT_CHARS</code></td><td><code>40000</code></td><td class="wrap">Character cap on any tool result fed to the model.</td></tr>
 </table>

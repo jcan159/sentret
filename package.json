@@ -31,11 +31,12 @@
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "scripts": {
-    "build": "tsc -p tsconfig.build.json && cp -R src/prompts dist/prompts && cp -R src/schemas dist/schemas",
+    "build": "tsc -p tsconfig.build.json && cp -R src/prompts dist/prompts && cp -R src/schemas dist/schemas && cp -R src/server/public dist/server/public",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
-    "analyse": "tsx src/cli.ts"
+    "analyse": "tsx src/cli.ts",
+    "serve": "tsx src/server/serve.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.104.1",
