@@ -4,61 +4,71 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Sentret — KQL Detection Rule Analyser</title>
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Ctext y='14' font-size='14'%3E%F0%9F%94%8E%3C/text%3E%3C/svg%3E">
+<link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2016%2016'%3E%3Ccircle%20cx='8'%20cy='9'%20r='6'%20fill='%23c98a4b'/%3E%3Ccircle%20cx='8'%20cy='10'%20r='3.4'%20fill='%23f0e2c4'/%3E%3Ccircle%20cx='5.8'%20cy='7.6'%20r='1.2'%20fill='%23241a10'/%3E%3Ccircle%20cx='10.2'%20cy='7.6'%20r='1.2'%20fill='%23241a10'/%3E%3Ccircle%20cx='8'%20cy='4'%20r='1.3'%20fill='%23c14a30'/%3E%3C/svg%3E">
 <style>
+  /* Sentret palette: sandy cream, caramel fur, cocoa tail-rings, terracotta marking. */
   :root {
-    --bg: #f7f6f2; --panel: #fff; --ink: #1f2a30; --muted: #5c6b73;
-    --accent: #0e6e6b; --accent-soft: #e3f0ef; --border: #ddd8cd;
-    --code-bg: #15211f; --code-ink: #d7e6e2;
-    --warn-bg: #fdf3e4; --warn-edge: #c97b1f; --danger-bg: #faeaea; --danger-edge: #a63c3c;
-    --ok: #1c7c54;
+    --bg: #f4e8d0; --panel: #fffaf0; --ink: #2c2013; --muted: #8a7355;
+    --fur: #c98a4b; --fur-dark: #a4682c; --fur-deep: #875321;
+    --cocoa: #3a2817; --cocoa-2: #271a0e;
+    --border: #e6d3a9; --accent-soft: #f2e3c2;
+    --berry: #c14a30; --berry-bg: #f7e2da; --berry-edge: #a73a26;
+    --warn-bg: #f8eccf; --warn-edge: #ae7414;
+    --ok: #5f7d33; --ok-bg: #ebefd2;
+    --code-ink: #ecdcbf;
   }
   * { box-sizing: border-box; }
   body { margin: 0; font-family: "Avenir Next","Segoe UI",system-ui,sans-serif; background: var(--bg); color: var(--ink); line-height: 1.5; }
-  header { background: var(--code-bg); color: #f2efe7; padding: 1.1rem 1.5rem; display: flex; align-items: baseline; gap: 1rem; flex-wrap: wrap; }
+  header { background: var(--cocoa); color: #f3e7cf; padding: 1rem 1.5rem; display: flex; align-items: center; gap: .8rem; flex-wrap: wrap; }
+  .logo { width: 30px; height: 30px; flex: 0 0 auto; }
   header h1 { margin: 0; font-size: 1.25rem; }
-  header h1 code { color: #8fd6c9; font-family: ui-monospace, Menlo, Consolas, monospace; }
-  header .tag { color: #b9c8c4; font-size: .85rem; }
+  header h1 code { color: #ebc488; font-family: ui-monospace, Menlo, Consolas, monospace; letter-spacing: .02em; }
+  header .tag { color: #d8c19a; font-size: .85rem; }
   header .spacer { flex: 1; }
-  .provider-badge { font-size: .78rem; background: #21413e; color: #cfeae4; padding: .2rem .6rem; border-radius: 999px; }
-  main { max-width: 1180px; margin: 0 auto; padding: 1.3rem 1.5rem 3rem; display: grid; grid-template-columns: 380px 1fr; gap: 1.4rem; align-items: start; }
-  .card { background: var(--panel); border: 1px solid var(--border); border-radius: 10px; padding: 1.1rem; }
-  .card h2 { margin: 0 0 .8rem; font-size: 1rem; color: var(--accent); }
+  .provider-badge { font-size: .78rem; background: #55402a; color: #f0dcb4; padding: .25rem .7rem; border-radius: 999px; border: 1px solid #6e5435; }
+  /* Tail-ring accent bar under the header. */
+  .tail-stripe { height: 7px; background: repeating-linear-gradient(90deg, var(--cocoa) 0 18px, var(--fur) 18px 27px, #efe1c2 27px 36px); }
+  main { max-width: 1180px; margin: 0 auto; padding: 1.5rem 1.5rem 3rem; display: grid; grid-template-columns: 380px 1fr; gap: 1.4rem; align-items: start; }
+  .card { background: var(--panel); border: 1px solid var(--border); border-radius: 12px; padding: 1.15rem 1.2rem; box-shadow: 0 1px 2px #3a281710, 0 6px 18px #3a28170c; }
+  .card h2 { margin: 0 0 .8rem; font-size: 1rem; color: var(--fur-deep); letter-spacing: .01em; }
   label { display: block; font-size: .82rem; font-weight: 600; margin: .7rem 0 .2rem; }
   label .hint { font-weight: 400; color: var(--muted); }
   input[type=text], textarea, select {
     width: 100%; font: inherit; font-size: .88rem; padding: .45rem .55rem;
-    border: 1px solid var(--border); border-radius: 6px; background: #fff; color: var(--ink);
+    border: 1px solid var(--border); border-radius: 7px; background: #fffdf6; color: var(--ink);
   }
+  input[type=text]:focus, textarea:focus, select:focus { outline: none; border-color: var(--fur); box-shadow: 0 0 0 3px #c98a4b3a; }
   textarea { resize: vertical; min-height: 3.2rem; font-family: ui-monospace, Menlo, Consolas, monospace; font-size: .82rem; }
   textarea#kql { min-height: 6rem; }
   .row { display: flex; gap: .8rem; }
   .row > div { flex: 1; }
   .checks { display: flex; flex-direction: column; gap: .35rem; margin-top: .6rem; }
   .checks label { display: flex; align-items: center; gap: .45rem; font-weight: 400; margin: 0; font-size: .85rem; }
-  .checks input { width: auto; }
+  .checks input { width: auto; accent-color: var(--fur-dark); }
   details { margin-top: .8rem; border-top: 1px dashed var(--border); padding-top: .6rem; }
-  summary { cursor: pointer; font-size: .82rem; font-weight: 600; color: var(--muted); }
+  summary { cursor: pointer; font-size: .82rem; font-weight: 600; color: var(--fur-deep); }
   .actions { display: flex; gap: .6rem; margin-top: 1rem; }
-  button { font: inherit; font-weight: 600; border: none; border-radius: 7px; padding: .55rem .9rem; cursor: pointer; }
-  button.primary { background: var(--accent); color: #fff; }
-  button.primary:disabled { background: #9bb8b5; cursor: not-allowed; }
-  button.ghost { background: var(--accent-soft); color: #0b4f4d; }
+  button { font: inherit; font-weight: 600; border: none; border-radius: 8px; padding: .55rem .95rem; cursor: pointer; transition: background .15s; }
+  button.primary { background: var(--fur-dark); color: #fff7e7; }
+  button.primary:hover { background: var(--fur-deep); }
+  button.primary:disabled { background: #cbb78d; color: #fff7e7; cursor: not-allowed; }
+  button.ghost { background: var(--accent-soft); color: var(--fur-deep); border: 1px solid var(--border); }
+  button.ghost:hover { background: #ebd9b3; }
   .results { display: flex; flex-direction: column; gap: 1.1rem; min-width: 0; }
   .verdict { display: none; align-items: center; gap: 1rem; flex-wrap: wrap; }
   .verdict.show { display: flex; }
-  .score { font-size: 2rem; font-weight: 700; }
-  .badge { font-size: .85rem; font-weight: 600; padding: .25rem .7rem; border-radius: 999px; background: var(--accent-soft); color: #0b4f4d; }
+  .score { font-size: 2rem; font-weight: 700; color: var(--fur-deep); }
+  .badge { font-size: .85rem; font-weight: 600; padding: .25rem .7rem; border-radius: 999px; background: var(--accent-soft); color: var(--fur-deep); }
   .badge.warn { background: var(--warn-bg); color: var(--warn-edge); }
-  .badge.danger { background: var(--danger-bg); color: var(--danger-edge); }
-  .badge.ok { background: #e2f3ea; color: var(--ok); }
-  .stream { background: var(--code-bg); color: var(--code-ink); border-radius: 8px; padding: .8rem 1rem; font-family: ui-monospace, Menlo, Consolas, monospace; font-size: .8rem; white-space: pre-wrap; word-break: break-word; max-height: 280px; overflow-y: auto; min-height: 2.5rem; }
-  .stream:empty::before { content: "Run output will stream here…"; color: #5d7672; }
+  .badge.danger { background: var(--berry-bg); color: var(--berry-edge); }
+  .badge.ok { background: var(--ok-bg); color: var(--ok); }
+  .stream { background: var(--cocoa-2); color: var(--code-ink); border-radius: 9px; padding: .8rem 1rem; font-family: ui-monospace, Menlo, Consolas, monospace; font-size: .8rem; white-space: pre-wrap; word-break: break-word; max-height: 280px; overflow-y: auto; min-height: 2.5rem; }
+  .stream:empty::before { content: "Run output will stream here…"; color: #9c8868; }
   .activity { display: flex; flex-direction: column; gap: .3rem; }
-  .activity .ev { font-size: .8rem; padding: .35rem .55rem; border-radius: 6px; background: var(--accent-soft); color: #0b4f4d; }
-  .activity .ev.thinking { background: #efeafc; color: #5b3fa6; }
-  .activity .ev.err { background: var(--danger-bg); color: var(--danger-edge); }
-  pre.code { background: var(--code-bg); color: var(--code-ink); border-radius: 8px; padding: .8rem 1rem; overflow-x: auto; font-size: .8rem; }
+  .activity .ev { font-size: .8rem; padding: .35rem .55rem; border-radius: 7px; background: var(--accent-soft); color: var(--fur-deep); }
+  .activity .ev.thinking { background: #efe3d2; color: #8a5a30; }
+  .activity .ev.err { background: var(--berry-bg); color: var(--berry-edge); }
+  pre.code { background: var(--cocoa-2); color: var(--code-ink); border-radius: 9px; padding: .8rem 1rem; overflow-x: auto; font-size: .8rem; }
   .kv { font-size: .85rem; }
   .kv div { display: flex; gap: .5rem; padding: .15rem 0; }
   .kv .k { color: var(--muted); min-width: 150px; }
@@ -74,11 +84,27 @@
 </head>
 <body>
 <header>
+  <svg class="logo" viewBox="0 0 32 32" aria-hidden="true">
+    <!-- ears -->
+    <circle cx="9" cy="8" r="4" fill="#c98a4b"/><circle cx="23" cy="8" r="4" fill="#c98a4b"/>
+    <circle cx="9" cy="8" r="1.8" fill="#875321"/><circle cx="23" cy="8" r="1.8" fill="#875321"/>
+    <!-- head + cream muzzle -->
+    <circle cx="16" cy="17" r="11" fill="#c98a4b"/>
+    <ellipse cx="16" cy="20" rx="7.6" ry="6" fill="#f0e2c4"/>
+    <!-- forehead marking -->
+    <circle cx="16" cy="10.6" r="2" fill="#c14a30"/>
+    <!-- watchful eyes -->
+    <circle cx="11.6" cy="16" r="2.1" fill="#241a10"/><circle cx="20.4" cy="16" r="2.1" fill="#241a10"/>
+    <circle cx="12.2" cy="15.4" r=".7" fill="#fff"/><circle cx="21" cy="15.4" r=".7" fill="#fff"/>
+    <!-- nose -->
+    <circle cx="16" cy="20" r="1.4" fill="#241a10"/>
+  </svg>
   <h1><code>sentret</code></h1>
   <span class="tag">KQL Detection Rule Analyser</span>
   <span class="spacer"></span>
   <span class="provider-badge" id="provider-badge">provider: …</span>
 </header>
+<div class="tail-stripe" aria-hidden="true"></div>
 
 <main>
   <!-- ------------------------------------------------------------------ -->

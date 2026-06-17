@@ -5,20 +5,23 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>sentret — Usage Guide</title>
 <style>
+  /* Sentret palette: sandy cream, caramel fur, cocoa tail-rings, terracotta marking. */
   :root {
-    --bg: #f7f6f2;
-    --panel: #ffffff;
-    --ink: #1f2a30;
-    --muted: #5c6b73;
-    --accent: #0e6e6b;
-    --accent-soft: #e3f0ef;
-    --warn-bg: #fdf3e4;
-    --warn-edge: #c97b1f;
-    --danger-bg: #faeaea;
-    --danger-edge: #a63c3c;
-    --code-bg: #15211f;
-    --code-ink: #d7e6e2;
-    --border: #ddd8cd;
+    --bg: #f4e8d0;
+    --panel: #fffaf0;
+    --ink: #2c2013;
+    --muted: #8a7355;
+    --accent: #a4682c;
+    --fur-deep: #875321;
+    --accent-soft: #f2e3c2;
+    --warn-bg: #f8eccf;
+    --warn-edge: #ae7414;
+    --danger-bg: #f7e2da;
+    --danger-edge: #a73a26;
+    --cocoa: #3a2817;
+    --code-bg: #271a0e;
+    --code-ink: #ecdcbf;
+    --border: #e6d3a9;
   }
   * { box-sizing: border-box; }
   body {
@@ -29,15 +32,17 @@
     line-height: 1.55;
   }
   header {
-    background: var(--code-bg);
-    color: #f2efe7;
+    background: var(--cocoa);
+    color: #f3e7cf;
     padding: 2.4rem 1.5rem 2rem;
   }
+  /* Tail-ring accent bar under the header (matches the web UI). */
+  .tail-stripe { height: 7px; background: repeating-linear-gradient(90deg, var(--cocoa) 0 18px, var(--accent) 18px 27px, #efe1c2 27px 36px); }
   .shell { max-width: 1060px; margin: 0 auto; display: flex; gap: 2.2rem; padding: 0 1.5rem; }
   header .shell { display: block; }
   header h1 { margin: 0 0 .4rem; font-size: 1.9rem; letter-spacing: .01em; }
-  header h1 code { font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; color: #8fd6c9; }
-  header p { margin: 0; color: #b9c8c4; max-width: 60ch; }
+  header h1 code { font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; color: #ebc488; }
+  header p { margin: 0; color: #d8c19a; max-width: 60ch; }
   nav {
     flex: 0 0 215px;
     position: sticky;
@@ -63,7 +68,7 @@
     font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
     font-size: .86em;
     background: var(--accent-soft);
-    color: #0b4f4d;
+    color: var(--fur-deep);
     padding: .08em .35em;
     border-radius: 4px;
   }
@@ -77,7 +82,7 @@
     line-height: 1.5;
   }
   pre code { background: none; color: inherit; padding: 0; font-size: 1em; }
-  pre .c { color: #7fa39b; }
+  pre .c { color: #b59a6e; }
   table {
     border-collapse: collapse;
     width: 100%;
@@ -86,7 +91,7 @@
     background: var(--panel);
   }
   th, td { border: 1px solid var(--border); padding: .45rem .65rem; text-align: left; vertical-align: top; }
-  th { background: var(--accent-soft); color: #0b4f4d; font-weight: 600; }
+  th { background: var(--accent-soft); color: var(--fur-deep); font-weight: 600; }
   td code { white-space: nowrap; }
   td .wrap { white-space: normal; }
   .callout {
@@ -131,6 +136,7 @@
        package. Runs on Anthropic (Claude) or OpenAI — pick the backend with a flag.</p>
   </div>
 </header>
+<div class="tail-stripe" aria-hidden="true"></div>
 
 <div class="shell">
 <nav aria-label="Contents">
