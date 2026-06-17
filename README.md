@@ -5,6 +5,10 @@ Analytics KQL detection rules — implemented as a TypeScript backend + CLI. Run
 on Anthropic (Claude) or OpenAI (and any OpenAI-compatible endpoint); pick the
 backend with a config flag.
 
+<p align="center">
+  <img src="docs/screenshots/web-ui-form.png" alt="Sentret web UI — the detection request form" width="900">
+</p>
+
 The analyser can:
 
 - Review existing Microsoft Sentinel / Log Analytics KQL detection rules.
@@ -129,6 +133,15 @@ config — with JSON/Markdown download.
 Endpoints: `GET /api/health`, `GET /api/config`, `POST /api/analyse`
 (`{ request, overrides? }` → SSE stream). The server is also exported
 (`createSentretServer` / `startServer`) for embedding.
+
+A completed run renders the full report inline:
+
+<p align="center">
+  <img src="docs/screenshots/web-ui-report.png" alt="Sentret web UI — a completed analysis showing verdict, score, recommended KQL, and Sentinel rule configuration" width="900">
+</p>
+
+The screenshots above are generated with `npm run screenshots` (drives headless
+Chrome against a no-credentials demo run; see `scripts/screenshots.ts`).
 
 ## How it works
 

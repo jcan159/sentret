@@ -36,7 +36,8 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "analyse": "tsx src/cli.ts",
-    "serve": "tsx src/server/serve.ts"
+    "serve": "tsx src/server/serve.ts",
+    "screenshots": "tsx scripts/screenshots.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.104.1",
